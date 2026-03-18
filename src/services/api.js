@@ -1,7 +1,11 @@
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: "https://ecommerce-backend-production-aa2e.up.railway.app",
-});
-
-export default api;
+// services/api.js
+export const fetchProducts = async () => {
+  try {
+    const res = await fetch('https://ecommerce-backend-production-aa2e.up.railway.app/api/products');
+    const data = await res.json();
+    return data.data || [];
+  } catch (err) {
+    console.error('Error fetching products:', err);
+    return [];
+  }
+};
