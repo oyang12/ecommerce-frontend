@@ -1,29 +1,25 @@
-import Link from "next/link";
+'use client'; // penting kalau pakai useState / client-side interactivity
+
+import Image from 'next/image';
 
 export default function ProductCard({ product }) {
   return (
-
-    <Link href={`/product/${product.slug}`}>
-
-      <div className="border rounded-lg p-4 hover:shadow-lg transition cursor-pointer">
-
-        <img
-          src={`http://127.0.0.1:8000/storage/products/${product.thumbnail}`}
+    <div className="border rounded-lg p-4 shadow hover:shadow-lg transition">
+      {product.images && product.images.length > 0 ? (
+        <Image
+          src={product.images[0].url}
           alt={product.name}
-          className="w-full h-40 object-cover mb-3 rounded"
+          width={300}
+          height={300}
+          className="object-cover rounded"
         />
-
-        <h2 className="font-semibold text-lg mb-1">
-          {product.name}
-        </h2>
-
-        <p className="text-green-600 font-bold mb-3">
-          Rp {product.price}
-        </p>
-
-      </div>
-
-    </Link>
-
+      ) : (
+        <div className="w-full h-64 bg-gray-200 flex items-center justify-center">
+          No Image
+        </div>
+      )}
+      <h2 className="mt-2 font-semibold text-lg">{product.name}</h2>
+      <p className="mt-1 text-gray-600">${product.price}</p>
+    </div>
   );
 }
