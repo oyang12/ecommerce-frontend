@@ -6,8 +6,8 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'ecommerce-backend-production-aa2e.up.railway.app',
-        port: '',       // kosong kalau default 443
-        pathname: '/**', // semua path di domain itu
+        port: '',       // kosong jika default 443
+        pathname: '/**',
       },
     ],
   },
