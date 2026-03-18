@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['ecommerce-backend-production-aa2e.up.railway.app'], // domain backend
+    domains: ['ecommerce-backend-production-aa2e.up.railway.app'],
   },
 };
 
