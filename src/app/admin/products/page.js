@@ -5,8 +5,6 @@ export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  
-  // 1. Tambahkan state khusus untuk menampung array file
   const [selectedFiles, setSelectedFiles] = useState([]); 
   
   const [formData, setFormData] = useState({
@@ -19,28 +17,51 @@ export default function AdminProducts() {
 
   const API_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/api/products";
 
+  // 1. Ambil Data Produk
   const fetchProducts = async () => {
     const token = localStorage.getItem("token");
-    const res = await fetch(API_URL, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
-    const result = await res.json();
-    setProducts(result.data || []);
+    try {
+      const res = await fetch(API_URL, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const result = await res.json();
+      // Pastikan mengambil result.data karena Laravel biasanya membungkusnya dalam .data
+      setProducts(result.data || []); 
+    } catch (err) {
+      console.error("Gagal fetch:", err);
+    }
   };
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
+  // 2. Fungsi Hapus
+  const handleDelete = async (id) => {
+    if (!confirm("Yakin mau hapus produk ini?")) return;
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        alert("Produk berhasil dihapus!");
+        fetchProducts();
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan saat menghapus.");
+    }
+  };
+
+  // 3. Handle Nama & Slug Otomatis
   const handleNameChange = (e) => {
     const name = e.target.value;
     const slug = name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
     setFormData({ ...formData, name, slug });
   };
 
-  // 2. Fungsi untuk menangani pemilihan banyak file
-  const handleFileChange = (e) => {
-    setSelectedFiles(e.target.files); // e.target.files adalah FileList (array-like)
-  };
-
+  // 4. Handle Simpan Produk (Tambah)
   const handleAddProduct = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -53,7 +74,7 @@ export default function AdminProducts() {
     dataToSend.append("stock", formData.stock);
     dataToSend.append("description", formData.description);
 
-    // 3. LOGIKA KRUSIAL: Looping semua file ke dalam images[]
+    // Kirim banyak foto ke images[]
     if (selectedFiles.length > 0) {
       for (let i = 0; i < selectedFiles.length; i++) {
         dataToSend.append("images[]", selectedFiles[i]); 
@@ -68,10 +89,10 @@ export default function AdminProducts() {
       });
 
       if (res.ok) {
-        alert("Produk & Semua Gambar Berhasil Ditambah!");
+        alert("Produk Berhasil Ditambah!");
         setShowModal(false);
         setFormData({ name: "", slug: "", price: "", stock: "", description: "" });
-        setSelectedFiles([]); // Reset file
+        setSelectedFiles([]); 
         fetchProducts();
       } else {
         const errData = await res.json();
@@ -82,50 +103,113 @@ export default function AdminProducts() {
     } finally {
       setLoading(false);
     }
-  }
-
-  // ... (Tampilan Table sama seperti sebelumnya) ...
+  };
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
-       {/* ... (Header & Table) ... */}
-       <div className="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-md">
+    <div className="p-8 bg-gray-50 min-h-screen font-sans text-black">
+      <div className="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-md border border-gray-200">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Manajemen Produk MyStore</h1>
-          <button onClick={() => setShowModal(true)} className="bg-blue-600 text-white px-5 py-2 rounded-lg">+ Tambah Produk</button>
+          <button 
+            onClick={() => setShowModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold transition shadow-md"
+          >
+            + Tambah Produk Baru
+          </button>
         </div>
-        {/* Render Table kamu di sini */}
+
+        {/* TABEL PRODUK */}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-100 border-b text-gray-600 uppercase text-xs">
+                <th className="p-4 text-left">Nama Produk</th>
+                <th className="p-4 text-left">Slug</th>
+                <th className="p-4 text-left">Stok</th>
+                <th className="p-4 text-left">Harga</th>
+                <th className="p-4 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.length > 0 ? (
+                products.map((p) => (
+                  <tr key={p.id} className="border-b hover:bg-gray-50 transition">
+                    <td className="p-4 font-medium text-gray-800">{p.name}</td>
+                    <td className="p-4 text-gray-500 text-sm">{p.slug}</td>
+                    <td className="p-4 text-gray-700">{p.stock}</td>
+                    <td className="p-4 font-semibold text-blue-600">
+                      Rp {Number(p.price).toLocaleString()}
+                    </td>
+                    <td className="p-4 text-center flex justify-center gap-4">
+                      <button className="text-blue-500 hover:underline font-medium">Edit</button>
+                      <button 
+                        onClick={() => handleDelete(p.id)}
+                        className="text-red-500 hover:underline font-medium"
+                      >
+                        Hapus
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="p-10 text-center text-gray-400">Belum ada produk.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* MODAL FORM */}
+      {/* MODAL FORM TAMBAH PRODUK */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
-            <h2 className="text-2xl font-bold mb-6">Input Data Produk</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">Input Data Produk</h2>
             <form onSubmit={handleAddProduct} className="space-y-4">
-              {/* Input Name, Slug, Price, Stock, Desc sama seperti punyamu */}
+              
               <div>
                 <label className="block text-sm font-semibold mb-1">Nama Produk</label>
-                <input type="text" required className="w-full border p-2 rounded-lg" value={formData.name} onChange={handleNameChange} />
+                <input type="text" required className="w-full border p-2 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+                  value={formData.name} onChange={handleNameChange} placeholder="Contoh: Sepatu Sneakers" />
               </div>
 
-              {/* 4. PERUBAHAN INPUT FILE */}
               <div>
-                <label className="block text-sm font-semibold mb-1 text-blue-600">Upload Gambar Produk (Bisa Pilih Banyak)</label>
-                <input 
-                  type="file" 
-                  multiple // WAJIB ADA agar bisa pilih > 1 file
-                  accept="image/*" 
-                  className="w-full border p-1 rounded-lg text-sm"
-                  onChange={handleFileChange} 
-                />
-                <p className="text-[10px] text-gray-400 mt-1">*Kamu bisa pilih 1 foto atau lebih (tampak depan, samping, dll)</p>
+                <label className="block text-sm font-semibold mb-1 text-gray-500 text-xs italic">Slug (Otomatis)</label>
+                <input type="text" readOnly className="w-full border p-2 rounded-lg bg-gray-100 text-gray-500"
+                  value={formData.slug} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-1">Harga (Rp)</label>
+                  <input type="number" required className="w-full border p-2 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+                    value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-1">Stok</label>
+                  <input type="number" required className="w-full border p-2 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
+                    value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1">Deskripsi</label>
+                <textarea className="w-full border p-2 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none" rows="3"
+                  value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})}></textarea>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1 text-blue-600">Upload Foto Produk</label>
+                <input type="file" multiple accept="image/*" className="w-full border p-1 rounded-lg text-sm bg-blue-50 cursor-pointer"
+                  onChange={(e) => setSelectedFiles(e.target.files)} />
+                <p className="text-[10px] text-gray-400 mt-1">*Bisa pilih banyak foto sekaligus (Tahan Ctrl/Cmd)</p>
               </div>
 
               <div className="flex justify-end gap-3 mt-8">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2">Batal</button>
-                <button type="submit" disabled={loading} className="bg-blue-600 text-white px-8 py-2 rounded-lg font-bold">
-                  {loading ? "Proses..." : "Simpan Produk"}
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-500 hover:text-gray-700">Batal</button>
+                <button type="submit" disabled={loading} className="bg-blue-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400 transition shadow-lg">
+                  {loading ? "Menyimpan..." : "Simpan Produk"}
                 </button>
               </div>
             </form>
