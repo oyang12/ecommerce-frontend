@@ -5,8 +5,12 @@ export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState([]); 
+  const [selectedFiles, setSelectedFiles] = useState([]);
   
+  // State Tambahan untuk Edit
+  const [isEdit, setIsEdit] = useState(false);
+  const [editId, setEditId] = useState(null);
+
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -25,7 +29,6 @@ export default function AdminProducts() {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const result = await res.json();
-      // Pastikan mengambil result.data karena Laravel biasanya membungkusnya dalam .data
       setProducts(result.data || []); 
     } catch (err) {
       console.error("Gagal fetch:", err);
@@ -61,8 +64,22 @@ export default function AdminProducts() {
     setFormData({ ...formData, name, slug });
   };
 
-  // 4. Handle Simpan Produk (Tambah)
-  const handleAddProduct = async (e) => {
+  // 4. Fungsi untuk memicu Mode Edit
+  const handleEditClick = (p) => {
+    setFormData({
+      name: p.name,
+      slug: p.slug,
+      price: p.price,
+      stock: p.stock,
+      description: p.description || "",
+    });
+    setEditId(p.id);
+    setIsEdit(true);
+    setShowModal(true);
+  };
+
+  // 5. Handle Simpan Produk (Tambah & Update)
+  const handleSaveProduct = async (e) => {
     e.preventDefault();
     setLoading(true);
     const token = localStorage.getItem("token");
@@ -81,18 +98,22 @@ export default function AdminProducts() {
       }
     }
 
+    // LOGIKA KRUSIAL: Jika edit, Laravel butuh _method PUT dalam FormData
+    const url = isEdit ? `${API_URL}/${editId}` : API_URL;
+    if (isEdit) {
+      dataToSend.append("_method", "PUT");
+    }
+
     try {
-      const res = await fetch(API_URL, {
-        method: "POST",
+      const res = await fetch(url, {
+        method: "POST", // Tetap POST karena kita mengirim file (FormData)
         headers: { "Authorization": `Bearer ${token}` },
         body: dataToSend
       });
 
       if (res.ok) {
-        alert("Produk Berhasil Ditambah!");
-        setShowModal(false);
-        setFormData({ name: "", slug: "", price: "", stock: "", description: "" });
-        setSelectedFiles([]); 
+        alert(isEdit ? "Produk Berhasil Diperbarui!" : "Produk Berhasil Ditambah!");
+        closeModal();
         fetchProducts();
       } else {
         const errData = await res.json();
@@ -103,6 +124,15 @@ export default function AdminProducts() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Fungsi Reset Modal
+  const closeModal = () => {
+    setShowModal(false);
+    setIsEdit(false);
+    setEditId(null);
+    setFormData({ name: "", slug: "", price: "", stock: "", description: "" });
+    setSelectedFiles([]);
   };
 
   return (
@@ -141,7 +171,12 @@ export default function AdminProducts() {
                       Rp {Number(p.price).toLocaleString()}
                     </td>
                     <td className="p-4 text-center flex justify-center gap-4">
-                      <button className="text-blue-500 hover:underline font-medium">Edit</button>
+                      <button 
+                        onClick={() => handleEditClick(p)} // PANGGIL FUNGSI EDIT
+                        className="text-blue-500 hover:underline font-medium"
+                      >
+                        Edit
+                      </button>
                       <button 
                         onClick={() => handleDelete(p.id)}
                         className="text-red-500 hover:underline font-medium"
@@ -161,12 +196,14 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {/* MODAL FORM TAMBAH PRODUK */}
+      {/* MODAL FORM (TAMBAH & EDIT) */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">Input Data Produk</h2>
-            <form onSubmit={handleAddProduct} className="space-y-4">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">
+              {isEdit ? "Edit Data Produk" : "Input Data Produk"}
+            </h2>
+            <form onSubmit={handleSaveProduct} className="space-y-4">
               
               <div>
                 <label className="block text-sm font-semibold mb-1">Nama Produk</label>
@@ -200,16 +237,18 @@ export default function AdminProducts() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1 text-blue-600">Upload Foto Produk</label>
+                <label className="block text-sm font-semibold mb-1 text-blue-600">
+                  {isEdit ? "Ganti/Tambah Foto Produk (Opsional)" : "Upload Foto Produk"}
+                </label>
                 <input type="file" multiple accept="image/*" className="w-full border p-1 rounded-lg text-sm bg-blue-50 cursor-pointer"
                   onChange={(e) => setSelectedFiles(e.target.files)} />
                 <p className="text-[10px] text-gray-400 mt-1">*Bisa pilih banyak foto sekaligus (Tahan Ctrl/Cmd)</p>
               </div>
 
               <div className="flex justify-end gap-3 mt-8">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-500 hover:text-gray-700">Batal</button>
+                <button type="button" onClick={closeModal} className="px-4 py-2 text-gray-500 hover:text-gray-700">Batal</button>
                 <button type="submit" disabled={loading} className="bg-blue-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400 transition shadow-lg">
-                  {loading ? "Menyimpan..." : "Simpan Produk"}
+                  {loading ? "Menyimpan..." : isEdit ? "Update Produk" : "Simpan Produk"}
                 </button>
               </div>
             </form>
