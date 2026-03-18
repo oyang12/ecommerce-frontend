@@ -2,7 +2,14 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['ecommerce-backend-production-aa2e.up.railway.app'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'ecommerce-backend-production-aa2e.up.railway.app',
+        port: '',       // kosong kalau default 443
+        pathname: '/**', // semua path di domain itu
+      },
+    ],
   },
 };
 
