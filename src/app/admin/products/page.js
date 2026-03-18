@@ -5,7 +5,7 @@ export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+  const [selectedFiles, setSelectedFiles] = useState([]); // State khusus untuk menampung banyak file
   // State lengkap untuk semua field
   const [formData, setFormData] = useState({
     name: "",
