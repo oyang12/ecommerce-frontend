@@ -1,7 +1,7 @@
 // services/api.js
 export const fetchProducts = async () => {
   try {
-    const res = await fetch('https://ecommerce-backend-production-aa2e.up.railway.app/api/products');
+    const res = await fetch('https://ecommerce-backend-production-aa2e.up.railway.app/api');
     const data = await res.json();
     return data.data || [];
   } catch (err) {
