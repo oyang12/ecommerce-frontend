@@ -3,7 +3,37 @@ import { useEffect, useState } from "react";
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
+  const handleDelete = async (id) => {
+  if (!confirm("Yakin mau hapus produk ini?")) return;
 
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch(`https://ecommerce-backend-production-aa2e.up.railway.app/api/products/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (res.ok) {
+      alert("Produk berhasil dihapus!");
+      // Update tampilan tabel tanpa reload halaman
+      setProducts(products.filter(p => p.id !== id));
+    } else {
+      alert("Gagal menghapus. Pastikan kamu Admin.");
+    }
+  } catch (err) {
+    alert("Terjadi kesalahan koneksi.");
+  }
+};
+
+// ... di dalam return (bagian tombol hapus), ubah menjadi:
+<button 
+  onClick={() => handleDelete(p.id)} 
+  className="text-red-500 hover:underline"
+>
+  Hapus
+</button>
   useEffect(() => {
     const token = localStorage.getItem("token");
     
