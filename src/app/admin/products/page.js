@@ -222,20 +222,17 @@ export default function AdminProducts() {
                     <img 
                       src={
                         p.thumbnail 
-                          ? (p.thumbnail.startsWith('data:image') 
-                              ? p.thumbnail 
-                              : `data:image/jpeg;base64,${p.thumbnail}`)
+                          ? `https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/${p.thumbnail}`
                           : p.image 
-                            ? (p.image.startsWith('data:image') 
-                                ? p.image 
-                                : `data:image/jpeg;base64,${p.image}`)
+                            ? `https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/${p.image}`
                             : "https://via.placeholder.com/400x300?text=No+Image"
                       } 
                       alt={p.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      // Jika link di atas mati/salah, tampilkan placeholder agar tidak kosong
                       onError={(e) => {
                         e.target.onerror = null; 
-                        e.target.src = "https://via.placeholder.com/400x300?text=Format+Error";
+                        e.target.src = "https://via.placeholder.com/400x300?text=Image+Not+Found";
                       }}
                     />
                     <div className="absolute top-3 right-3">
