@@ -3,31 +3,28 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 
-// HAPUS generateStaticParams dari sini karena bentrok dengan 'use client'
-// Kita gunakan export const dynamic sebagai gantinya agar Vercel tahu ini halaman dinamis
-export const runtime = 'edge'; 
-
 export default function ProductDetailPage() {
   const params = useParams();
-  const slug = params?.slug; // Ambil slug dengan aman
+  const slug = params?.slug; 
   
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(null);
 
-  const API_URL = `https://ecommerce-backend-production-aa2e.up.railway.app/api/products/${slug}`;
   const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
 
   useEffect(() => {
     if (!slug) return;
 
     const fetchDetail = async () => {
+      const API_URL = `https://ecommerce-backend-production-aa2e.up.railway.app/api/products/${slug}`;
       try {
         const res = await fetch(API_URL, { cache: 'no-store' });
         const result = await res.json();
         if (result.data) {
           setProduct(result.data);
-          setActiveImage(result.data.thumbnail);
+          // Set thumbnail sebagai gambar utama di awal
+          setActiveImage(result.data.thumbnail || (result.data.images?.[0]?.image_path));
         }
       } catch (err) {
         console.error("Gagal memuat detail produk:", err);
@@ -37,7 +34,7 @@ export default function ProductDetailPage() {
     };
 
     fetchDetail();
-  }, [slug, API_URL]);
+  }, [slug]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -49,7 +46,7 @@ export default function ProductDetailPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
         <p className="font-black uppercase tracking-widest text-gray-400">Produk tidak ditemukan</p>
-        <button onClick={() => window.history.back()} className="mt-4 text-xs font-bold text-blue-600 uppercase underline tracking-tighter">Kembali ke Katalog</button>
+        <button onClick={() => window.history.back()} className="mt-4 text-xs font-bold text-blue-600 uppercase underline">Kembali ke Katalog</button>
       </div>
     </div>
   );
@@ -76,7 +73,7 @@ export default function ProductDetailPage() {
           <div className="space-y-4">
             <div className="aspect-square bg-white rounded-3xl overflow-hidden border border-gray-200 shadow-sm group">
               <img 
-                src={`${STORAGE_URL}${activeImage}`} 
+                src={activeImage ? `${STORAGE_URL}${activeImage}` : "https://via.placeholder.com/600x600?text=No+Image"} 
                 alt={product.name} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -84,15 +81,23 @@ export default function ProductDetailPage() {
             
             {product.images && product.images.length > 0 && (
               <div className="grid grid-cols-4 gap-4">
+                {/* Thumbnail utama */}
+                <button 
+                  onClick={() => setActiveImage(product.thumbnail)}
+                  className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${activeImage === product.thumbnail ? 'border-gray-900' : 'border-transparent opacity-50'}`}
+                >
+                  <img src={`${STORAGE_URL}${product.thumbnail}`} className="w-full h-full object-cover" alt="thumb" />
+                </button>
+                {/* List gambar tambahan */}
                 {product.images.map((img, idx) => (
                   <button 
                     key={idx}
-                    onClick={() => setActiveImage(img.image_path || img.thumbnail)}
+                    onClick={() => setActiveImage(img.image_path)}
                     className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${
-                      activeImage === (img.image_path || img.thumbnail) ? 'border-gray-900 shadow-md scale-95' : 'border-transparent opacity-50 hover:opacity-100'
+                      activeImage === img.image_path ? 'border-gray-900 shadow-md scale-95' : 'border-transparent opacity-50 hover:opacity-100'
                     }`}
                   >
-                    <img src={`${STORAGE_URL}${img.image_path || img.thumbnail}`} className="w-full h-full object-cover" />
+                    <img src={`${STORAGE_URL}${img.image_path}`} className="w-full h-full object-cover" alt={`gallery-${idx}`} />
                   </button>
                 ))}
               </div>
