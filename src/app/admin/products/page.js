@@ -139,11 +139,16 @@ export default function AdminProducts() {
         });
         setEditId(data.id);
 
+        // Perbaikan Path Gambar agar tidak crash jika image_path kosong
         const formattedImages = (data.images || []).map(img => {
-          const cleanPath = img.image_path.replace(/^products\//, "");
+          // Cek apakah image_path ada, jika tidak ada gunakan string kosong
+          const path = img.image_path || ""; 
+          const cleanPath = path.replace(/^products\//, "");
+          
           return {
             ...img,
-            url: `${STORAGE_URL}${cleanPath}`
+            // Gunakan thumbnail_url dari API jika ada sebagai fallback
+            url: path ? `${STORAGE_URL}${cleanPath}` : (img.url || "https://via.placeholder.com/150")
           };
         });
         
