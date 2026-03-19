@@ -191,45 +191,31 @@ export default function AdminProducts() {
   }
 };
 
-  const handleSaveProduct = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    const token = localStorage.getItem("token");
-    const dataToSend = new FormData();
-    dataToSend.append("name", formData.name);
-    dataToSend.append("slug", formData.slug);
-    dataToSend.append("price", formData.price);
-    dataToSend.append("stock", formData.stock);
-    dataToSend.append("description", formData.description);
-    dataToSend.append("status", formData.status);
-
-    if (selectedFiles.length > 0) {
-      selectedFiles.forEach((file) => {
-        dataToSend.append("images[]", file);
-      });
+  const handleSaveProduct = async () => {
+    const formData = new FormData();
+    formData.append('name', currentProduct.name);
+    formData.append('price', currentProduct.price);
+    formData.append('stock', currentProduct.stock);
+    formData.append('description', currentProduct.description || ""); // Kirim string kosong jika null
+    
+    // Logic Slug: Pastikan slug terisi
+    const slug = currentProduct.name.toLowerCase().replace(/ /g, '-');
+    formData.append('slug', slug);
+  
+    // Hanya append gambar jika ada file yang dipilih
+    if (selectedFile) {
+      formData.append('image', selectedFile);
     }
-
-    const url = isEdit ? `${API_URL}/${editId}` : API_URL;
-    if (isEdit) dataToSend.append("_method", "PUT");
-
+    if (selectedThumbnail) {
+      formData.append('thumbnail', selectedThumbnail);
+    }
+  
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${token}` },
-        body: dataToSend
-      });
-      if (res.ok) {
-        alert(isEdit ? "Produk Berhasil Diperbarui!" : "Produk Berhasil Ditambah!");
-        closeModal();
-        fetchProducts();
-      } else {
-        const errData = await res.json();
-        alert("Gagal: " + JSON.stringify(errData));
-      }
-    } catch (err) {
-      alert("Error koneksi ke server");
-    } finally {
-      setLoading(false);
+      const response = await axios.post('/api/products', formData);
+      // ... logic sukses
+    } catch (error) {
+      console.error("Detail Error:", error.response?.data); 
+      // ^ LIHAT DI SINI: Ini akan memberitahu kolom mana yang bikin error
     }
   };
 
