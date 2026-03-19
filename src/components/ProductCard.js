@@ -11,9 +11,9 @@ export default function ProductCard({ product }) {
       <div className="relative w-full h-64 mb-4 bg-gray-100 rounded-lg overflow-hidden">
         {displayImage ? (
           <img
-            src={displayImage}
+            src={product.image ? `https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/${product.image}` : "/no-image.png"}
             alt={product.name}
-            className="w-full h-full object-cover"
+            className="w-full h-48 object-cover"
             // Tambahkan fallback jika URL gambar rusak
             onError={(e) => {
               e.target.src = 'https://placehold.co/600x400?text=Image+Error';
