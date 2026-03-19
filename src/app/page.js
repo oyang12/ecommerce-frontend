@@ -22,33 +22,34 @@ export default function HomePage() {
   if (loading)
     return (
       <div className="flex flex-col justify-center items-center min-h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600 border-opacity-50"></div>
-        <p className="mt-4 text-gray-500 font-semibold tracking-wide">Menyiapkan Koleksi Terbaik...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-gray-900 border-opacity-50"></div>
+        <p className="mt-4 text-gray-500 font-bold uppercase text-xs tracking-widest">Menyiapkan Koleksi Terbaik...</p>
       </div>
     );
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen font-sans text-black">
       <div className="max-w-7xl mx-auto">
-        {/* HEADER SECTION - Meniru gaya Admin */}
+        
+        {/* HEADER SECTION - Identik dengan Admin */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Produk Kami</h1>
-            <p className="text-gray-500 mt-1">Temukan produk impian Anda dengan kualitas terbaik.</p>
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight uppercase">Produk Kami</h1>
+            <p className="text-gray-500 mt-1 italic text-sm">Temukan produk impian Anda dengan kualitas terbaik.</p>
           </div>
-          <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
-             <span className="text-blue-600 font-bold">{products.length}</span> 
-             <span className="text-gray-500 ml-1 font-medium text-sm">Produk Tersedia</span>
+          <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border border-gray-100 flex items-center">
+             <span className="text-blue-600 font-black text-xl">{products.length}</span> 
+             <span className="text-gray-400 ml-2 font-black text-xs uppercase tracking-tighter">Produk Tersedia</span>
           </div>
         </div>
 
         {products.length === 0 ? (
           <div className="py-20 text-center bg-white rounded-3xl shadow-sm border border-gray-100">
-            <div className="text-6xl mb-4">📦</div>
-            <p className="text-gray-400 text-lg font-medium">Belum ada produk untuk ditampilkan saat ini.</p>
+            <div className="text-6xl mb-4 opacity-20">📦</div>
+            <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">Belum ada produk saat ini.</p>
           </div>
         ) : (
-          /* GRID SECTION - Menyesuaikan gap dan layout admin */
+          /* GRID SECTION - Gap 6 identik dengan Admin */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
