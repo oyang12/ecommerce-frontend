@@ -30,7 +30,8 @@ export default function AdminProducts() {
 
   const API_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/api/products";
   const IMAGE_API_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/api/product-images";
-  const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
+  // STORAGE_URL disesuaikan agar langsung memanggil dari root storage sesuai database kamu
+  const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/";
 
   const fetchProducts = async () => {
     setFetchLoading(true);
@@ -52,6 +53,7 @@ export default function AdminProducts() {
     fetchProducts();
   }, []);
 
+  // FITUR 1: TOGGLE STATUS
   const toggleStatus = async (product) => {
     const newStatus = product.status === "Active" ? "Draft" : "Active";
     const token = localStorage.getItem("token");
@@ -107,52 +109,43 @@ export default function AdminProducts() {
   };
 
   const handleEditClick = async (p) => {
-  if (!p) return;
-  setLoading(true);
-  const token = localStorage.getItem("token");
-
-  try {
-    const res = await fetch(`${API_URL}/${p.slug}`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
-    const result = await res.json();
-    const data = result.data;
-
-    if (data) {
-      setFormData({
-        name: data.name,
-        slug: data.slug,
-        price: data.price,
-        stock: data.stock,
-        description: data.description || "",
-        status: data.status || "Active",
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`${API_URL}/${p.slug}`, {
+        headers: { "Authorization": `Bearer ${token}` }
       });
-      setEditId(data.id);
+      const result = await res.json();
+      const data = result.data;
 
-      // LOGIKA YANG DISESUAIKAN DENGAN DATABASE (image_e3ab82.png)
-      const formattedImages = (data.images || []).map(img => {
-        // Ambil nama file langsung dari kolom 'image' sesuai screenshot MySQL
-        const fileName = img.image || ""; 
-        
-        return {
+      if (data) {
+        setFormData({
+          name: data.name,
+          slug: data.slug,
+          price: data.price,
+          stock: data.stock,
+          description: data.description || "",
+          status: data.status || "Active",
+        });
+        setEditId(data.id);
+
+        // LOGIKA GAMBAR: Memanggil field 'image' sesuai database kamu
+        const formattedImages = (data.images || []).map(img => ({
           ...img,
-          // Gabungkan langsung dengan STORAGE_URL tanpa manipulasi teks yang aneh-aneh
-          url: `${STORAGE_URL}${fileName}` 
-        };
-      });
-
-      setExistingImages(formattedImages);
-      setIsEdit(true);
-      setShowModal(true);
+          url: `${STORAGE_URL}${img.image || ""}`
+        }));
+        
+        setExistingImages(formattedImages);
+        setIsEdit(true);
+        setShowModal(true);
+      }
+    } catch (err) {
+      console.error("Gagal ambil detail produk:", err);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Gagal ambil detail:", err);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-  
   const handleDeleteExistingImage = async (imageId) => {
     const token = localStorage.getItem("token");
     try {
@@ -210,6 +203,7 @@ export default function AdminProducts() {
     }
   };
 
+  // FITUR 2: BULK DELETE
   const handleBulkDelete = async () => {
     if (!confirm(`Yakin ingin menghapus ${selectedProductIds.length} produk terpilih?`)) return;
     setLoading(true);
@@ -248,6 +242,7 @@ export default function AdminProducts() {
     setExistingImages([]);
   };
 
+  // FITUR 3: FILTER & SEARCH
   const filteredProducts = products.filter(p => {
     const matchesSearch = (p.name || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "Semua" || p.category === selectedCategory;
@@ -272,35 +267,96 @@ export default function AdminProducts() {
           </button>
         </div>
 
-        {/* SEARCH & STATS */}
+        {/* FITUR 4: STATISTIK */}
         {!fetchLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Total Produk</p>
               <h2 className="text-3xl font-black text-gray-900 mt-1">{products.length}</h2>
             </div>
-            {/* ... statistik lainnya tetap sama ... */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <p className="text-xs font-black uppercase text-gray-400 tracking-widest text-orange-400">Stok Menipis</p>
+              <h2 className="text-3xl font-black text-gray-900 mt-1">{products.filter(p => p.stock > 0 && p.stock <= 5).length}</h2>
+            </div>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <p className="text-xs font-black uppercase text-gray-400 tracking-widest text-red-500">Stok Habis</p>
+              <h2 className="text-3xl font-black text-gray-900 mt-1">{products.filter(p => p.stock <= 0).length}</h2>
+            </div>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <p className="text-xs font-black uppercase text-gray-400 tracking-widest text-gray-400">Draft / Hidden</p>
+              <h2 className="text-3xl font-black text-gray-900 mt-1">{products.filter(p => p.status !== "Active").length}</h2>
+            </div>
           </div>
         )}
+
+        {/* SEARCH & FILTER UI */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <input 
+            type="text" 
+            placeholder="Cari nama produk..." 
+            className="flex-1 p-3 rounded-xl border-2 outline-none focus:border-black transition-all"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <select 
+            className="p-3 rounded-xl border-2 outline-none bg-white font-bold"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+          >
+            <option value="Semua">Semua Kategori</option>
+            {/* Kategori bisa dinamis jika ada datanya */}
+          </select>
+          {selectedProductIds.length > 0 && (
+            <button onClick={handleBulkDelete} className="bg-red-600 text-white px-6 py-3 rounded-xl font-bold animate-pulse">
+              Hapus ({selectedProductIds.length})
+            </button>
+          )}
+        </div>
 
         {/* GRID PRODUK */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((p) => (
             <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300">
+              {/* Checkbox untuk Bulk Delete */}
+              <input 
+                type="checkbox" 
+                className="absolute top-4 left-4 z-10 w-5 h-5 accent-black cursor-pointer"
+                checked={selectedProductIds.includes(p.id)}
+                onChange={(e) => {
+                  if (e.target.checked) setSelectedProductIds([...selectedProductIds, p.id]);
+                  else setSelectedProductIds(selectedProductIds.filter(id => id !== p.id));
+                }}
+              />
+
+              {/* Status Badge */}
+              <div className={`absolute top-4 right-4 z-10 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm ${p.status === 'Active' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                {p.status}
+              </div>
+
               <div className="aspect-[4/3] overflow-hidden bg-gray-100">
                 <img 
-                  src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail.replace(/^products\//, "")}` : "https://via.placeholder.com/400x300"} 
+                  src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : "https://placehold.co/400x300?text=No+Image"} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform" 
                   alt={p.name}
-                  onError={(e) => { e.target.src = "https://via.placeholder.com/400x300?text=No+Image"; }}
+                  onError={(e) => { e.target.src = "https://placehold.co/400x300?text=Error+Loading"; }}
                 />
               </div>
+
               <div className="p-5">
                 <h3 className="font-bold text-gray-800 uppercase truncate">{p.name}</h3>
-                <p className="text-blue-600 font-black mt-2">Rp {Number(p.price).toLocaleString('id-ID')}</p>
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-blue-600 font-black">Rp {Number(p.price).toLocaleString('id-ID')}</p>
+                  <p className={`text-[10px] font-bold ${p.stock <= 5 ? 'text-red-500' : 'text-gray-400'}`}>STOK: {p.stock}</p>
+                </div>
+                
                 <div className="flex gap-2 mt-4">
-                  <button onClick={() => handleEditClick(p)} className="flex-1 bg-gray-100 py-2 rounded-lg font-bold text-xs">Edit</button>
-                  <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 py-2 rounded-lg font-bold text-xs">Hapus</button>
+                  <button onClick={() => handleEditClick(p)} className="flex-1 bg-gray-900 text-white py-2 rounded-lg font-bold text-xs hover:bg-blue-600 transition-colors">Edit</button>
+                  <button onClick={() => toggleStatus(p)} className="flex-1 bg-gray-100 py-2 rounded-lg font-bold text-xs text-gray-600">
+                    {p.status === 'Active' ? 'Draftkan' : 'Aktifkan'}
+                  </button>
+                  <button onClick={() => handleDeleteProduct(p.id)} className="p-2 bg-red-50 text-red-600 rounded-lg font-bold text-xs">
+                    🗑️
+                  </button>
                 </div>
               </div>
             </div>
@@ -308,24 +364,32 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* MODAL EDIT/BARU (Logika Gambar sudah diperbaiki) */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
             <h2 className="text-2xl font-black mb-6 uppercase tracking-tight text-gray-900">{isEdit ? "Update Produk" : "Produk Baru"}</h2>
             <form onSubmit={handleSaveProduct} className="space-y-4">
-              <input type="text" placeholder="Nama Produk" className="w-full border-2 p-3 rounded-xl outline-none" value={formData.name} onChange={handleNameChange} required />
+              <input type="text" placeholder="Nama Produk" className="w-full border-2 p-3 rounded-xl outline-none focus:border-black" value={formData.name} onChange={handleNameChange} required />
+              
               <div className="grid grid-cols-2 gap-4">
                 <input type="number" placeholder="Harga" className="w-full border-2 p-3 rounded-xl outline-none" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required />
                 <input type="number" placeholder="Stok" className="w-full border-2 p-3 rounded-xl outline-none" value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} required />
               </div>
+
+              <select className="w-full border-2 p-3 rounded-xl outline-none" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}>
+                <option value="Active">Active</option>
+                <option value="Draft">Draft</option>
+              </select>
+
+              <textarea placeholder="Deskripsi Produk" className="w-full border-2 p-3 rounded-xl outline-none h-24" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
               
               {/* EXISTING IMAGES */}
               {isEdit && existingImages.length > 0 && (
                 <div className="grid grid-cols-4 gap-2 border-t pt-4">
                   {existingImages.map((img) => (
                     <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border">
-                      <img src={img.url} className="w-full h-full object-cover" alt="existing" onError={(e) => e.target.src="https://via.placeholder.com/150"} />
+                      <img src={img.url} className="w-full h-full object-cover" alt="existing" onError={(e) => e.target.src="https://placehold.co/150?text=Error"} />
                       <button type="button" onClick={() => handleDeleteExistingImage(img.id)} className="absolute top-0 right-0 bg-red-600 text-white w-5 h-5 text-[10px]">✕</button>
                     </div>
                   ))}
@@ -335,8 +399,8 @@ export default function AdminProducts() {
               {/* NEW IMAGES */}
               <div className="pt-4">
                 <input type="file" multiple accept="image/*" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
-                <button type="button" onClick={() => fileInputRef.current.click()} className="w-full border-2 border-dashed p-4 rounded-xl font-bold text-xs uppercase bg-gray-50">
-                  + Tambah Foto
+                <button type="button" onClick={() => fileInputRef.current.click()} className="w-full border-2 border-dashed p-4 rounded-xl font-bold text-xs uppercase bg-gray-50 text-gray-500">
+                  + Tambah Foto Produk
                 </button>
                 <div className="grid grid-cols-4 gap-2 mt-4">
                   {previewUrls.map((url, index) => (
@@ -350,8 +414,8 @@ export default function AdminProducts() {
 
               <div className="flex justify-end gap-3 pt-6">
                 <button type="button" onClick={closeModal} className="px-6 font-bold text-gray-400 text-xs">BATAL</button>
-                <button type="submit" disabled={loading} className="bg-black text-white px-8 py-3 rounded-xl font-bold text-xs">
-                  {loading ? "MEMPROSES..." : "SIMPAN"}
+                <button type="submit" disabled={loading} className="bg-black text-white px-8 py-3 rounded-xl font-bold text-xs hover:bg-blue-600 transition-all">
+                  {loading ? "MEMPROSES..." : "SIMPAN PRODUK"}
                 </button>
               </div>
             </form>
