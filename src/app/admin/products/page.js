@@ -107,27 +107,38 @@ export default function AdminProducts() {
   };
 
   const handleEditClick = async (p) => {
+    // 1. Cek apakah data produk p ada
+    if (!p) return;
+    
+    console.log("Membuka edit untuk:", p); // Debugging: Cek di console browser (F12)
     setLoading(true);
+    
     const token = localStorage.getItem("token");
+    
+    // Gunakan slug jika ada, kalau tidak ada pakai ID
+    const identifier = p.slug || p.id; 
+
     try {
-      const res = await fetch(`${API_URL}/${p.slug}`, {
+      const res = await fetch(`${API_URL}/${identifier}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
+
+      if (!res.ok) throw new Error("Gagal mengambil data dari server");
+
       const result = await res.json();
       const data = result.data;
 
       if (data) {
         setFormData({
-          name: data.name,
-          slug: data.slug,
-          price: data.price,
-          stock: data.stock,
+          name: data.name || "",
+          slug: data.slug || "",
+          price: data.price || "",
+          stock: data.stock || 0,
           description: data.description || "",
           status: data.status || "Active",
         });
         setEditId(data.id);
 
-        // Perbaikan Path Gambar agar tidak pecah/double
         const formattedImages = (data.images || []).map(img => {
           const cleanPath = img.image_path.replace(/^products\//, "");
           return {
@@ -138,15 +149,17 @@ export default function AdminProducts() {
         
         setExistingImages(formattedImages);
         setIsEdit(true);
-        setShowModal(true);
+        setShowModal(true); // Pastikan ini terpanggil di akhir
       }
     } catch (err) {
       console.error("Gagal ambil detail produk:", err);
+      alert("Gagal memuat detail produk. Pastikan API mengembalikan data yang benar.");
     } finally {
       setLoading(false);
     }
   };
 
+  
   const handleDeleteExistingImage = async (imageId) => {
     const token = localStorage.getItem("token");
     try {
