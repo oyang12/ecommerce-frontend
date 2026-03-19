@@ -313,10 +313,10 @@ export default function AdminProducts() {
           )}
         </div>
 
-        {/* GRID PRODUK DENGAN HOVER & DESKRIPSI */}
+        {/* GRID PRODUK */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((p) => (
-            <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-2xl hover:border-blue-200 transition-all duration-300">
+            <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300">
               <input 
                 type="checkbox" className="absolute top-4 left-4 z-30 w-5 h-5 accent-blue-600 cursor-pointer"
                 checked={selectedProductIds.includes(p.id)}
@@ -332,7 +332,6 @@ export default function AdminProducts() {
                 {p.status || "Active"}
               </button>
 
-              {/* IMAGE HOVER EFFECT */}
               <div className="aspect-[4/3] overflow-hidden bg-gray-100">
                 <img 
                   src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : "https://via.placeholder.com/400x300"} 
@@ -340,14 +339,11 @@ export default function AdminProducts() {
                 />
               </div>
 
-              <div className="p-5">
-                <h3 className="font-bold text-gray-800 uppercase truncate group-hover:text-blue-600 transition-colors">{p.name}</h3>
-                
-                {/* DESKRIPSI PRODUK (Limit 2 Baris) */}
+              <div className="p-5 pb-0">
+                <h3 className="font-bold text-gray-800 uppercase truncate">{p.name}</h3>
                 <p className="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed h-[32px]">
                   {p.description || "Tidak ada deskripsi produk."}
                 </p>
-
                 <div className="flex justify-between items-end mt-4">
                   <p className="text-blue-600 font-black text-lg">Rp {Number(p.price).toLocaleString('id-ID')}</p>
                   <span className={`text-[10px] font-bold uppercase ${p.stock < 5 ? 'text-orange-500' : 'text-gray-400'}`}>
@@ -356,9 +352,10 @@ export default function AdminProducts() {
                 </div>
               </div>
 
-              <div className="p-4 bg-gray-50 border-t flex gap-2 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                <button onClick={() => handleEditClick(p)} className="flex-1 bg-white border py-2 rounded-xl font-bold text-xs hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all">✎ Edit</button>
-                <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 py-2 rounded-xl font-bold text-xs hover:bg-red-600 hover:text-white transition-all">🗑 Hapus</button>
+              {/* ACTION BUTTONS (ALWAYS VISIBLE) */}
+              <div className="p-4 bg-gray-50 border-t flex gap-2 mt-4">
+                <button onClick={() => handleEditClick(p)} className="flex-1 bg-white border border-gray-200 py-2 rounded-xl font-bold text-xs hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all">✎ Edit</button>
+                <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 py-2 rounded-xl font-bold text-xs hover:bg-red-600 hover:text-white transition-all">🗑 Hapus</button>
               </div>
             </div>
           ))}
