@@ -30,8 +30,10 @@ export default function AdminProducts() {
 
   const API_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/api/products";
   const IMAGE_API_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/api/product-images";
-  // STORAGE_URL bersih agar pas dengan data database kamu
   const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/";
+
+  // Fallback Image jika placeholder eksternal diblokir
+  const FALLBACK_IMG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mN8Xw8AAoMBg79T89MAAAAASUVORK5CYII=";
 
   const fetchProducts = async () => {
     setFetchLoading(true);
@@ -53,7 +55,6 @@ export default function AdminProducts() {
     fetchProducts();
   }, []);
 
-  // FITUR: TOGGLE STATUS (Yang sempat hilang)
   const toggleStatus = async (product) => {
     const newStatus = product.status === "Active" ? "Draft" : "Active";
     const token = localStorage.getItem("token");
@@ -108,7 +109,6 @@ export default function AdminProducts() {
     }
   };
 
-  // LOGIKA GAMBAR EDIT: Memanggil field 'image' sesuai database kamu
   const handleEditClick = async (p) => {
     setLoading(true);
     const token = localStorage.getItem("token");
@@ -125,15 +125,13 @@ export default function AdminProducts() {
           slug: data.slug,
           price: data.price,
           stock: data.stock,
-          description: data.description || "", // Kolom Deskripsi (Sudah ada di state)
+          description: data.description || "",
           status: data.status || "Active",
         });
         setEditId(data.id);
 
-        // PERBAIKAN: Format gambar existing berdasarkan field 'image' dari DB
         const formattedImages = (data.images || []).map(img => ({
           ...img,
-          // Gabungkan langsung tanpa replace folder, karena DB kamu langsung nama file
           url: `${STORAGE_URL}${img.image || ""}`
         }));
         
@@ -142,7 +140,7 @@ export default function AdminProducts() {
         setShowModal(true);
       }
     } catch (err) {
-      console.error("Gagal ambil detail produk:", err);
+      alert("Gagal memuat detail produk.");
     } finally {
       setLoading(false);
     }
@@ -172,7 +170,7 @@ export default function AdminProducts() {
     dataToSend.append("slug", formData.slug);
     dataToSend.append("price", formData.price);
     dataToSend.append("stock", formData.stock);
-    dataToSend.append("description", formData.description); // Kolom Deskripsi (Disimpan)
+    dataToSend.append("description", formData.description);
     dataToSend.append("status", formData.status);
 
     if (selectedFiles.length > 0) {
@@ -205,7 +203,6 @@ export default function AdminProducts() {
     }
   };
 
-  // FITUR: BULK DELETE (Yang sempat hilang)
   const handleBulkDelete = async () => {
     if (!confirm(`Yakin ingin menghapus ${selectedProductIds.length} produk terpilih?`)) return;
     setLoading(true);
@@ -244,7 +241,6 @@ export default function AdminProducts() {
     setExistingImages([]);
   };
 
-  // FITUR: FILTER & SEARCH
   const filteredProducts = products.filter(p => {
     const matchesSearch = (p.name || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "Semua" || p.category === selectedCategory;
@@ -269,7 +265,7 @@ export default function AdminProducts() {
           </button>
         </div>
 
-        {/* FITUR: STATISTIK (Yang sempat hilang) */}
+        {/* STATISTIK */}
         {!fetchLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -291,7 +287,7 @@ export default function AdminProducts() {
           </div>
         )}
 
-        {/* SEARCH, FILTER, BULK DELETE UI */}
+        {/* TOOLS */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <input 
             type="text" 
@@ -306,7 +302,6 @@ export default function AdminProducts() {
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
             <option value="Semua">Semua Kategori</option>
-            {/* Kategori bisa dinamis jika ada datanya */}
           </select>
           {selectedProductIds.length > 0 && (
             <button onClick={handleBulkDelete} className="bg-red-600 text-white px-6 py-3 rounded-xl font-bold animate-pulse">
@@ -315,11 +310,10 @@ export default function AdminProducts() {
           )}
         </div>
 
-        {/* GRID PRODUK (Yang fiturnya hilang di image_e9ab03.png) */}
+        {/* GRID PRODUK */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((p) => (
             <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300">
-              {/* Checkbox untuk Bulk Delete */}
               <input 
                 type="checkbox" 
                 className="absolute top-4 left-4 z-10 w-5 h-5 accent-black cursor-pointer"
@@ -330,32 +324,27 @@ export default function AdminProducts() {
                 }}
               />
 
-              {/* Status Badge */}
               <div className={`absolute top-4 right-4 z-10 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm ${p.status === 'Active' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
                 {p.status}
               </div>
 
               <div className="aspect-[4/3] overflow-hidden bg-gray-100">
                 <img 
-                  // LOGIKA GAMBAR GRID: Memakai p.thumbnail langsung tanpa replace folder
-                  src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : "https://placehold.co/400x300?text=No+Image"} 
+                  src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : FALLBACK_IMG} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform" 
                   alt={p.name}
-                  // Fallback jika placeholder error ( ERR_NAME_NOT_RESOLVED)
-                  onError={(e) => { e.target.src = "https://via.placeholder.com/400x300?text=Error+Loading"; }}
+                  onError={(e) => { e.target.src = FALLBACK_IMG; }}
                 />
               </div>
 
               <div className="p-5">
                 <h3 className="font-bold text-gray-800 uppercase truncate">{p.name}</h3>
-                {/* FITUR: DESKRIPSI DI CARD (truncate agar rapi) */}
                 <p className="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed h-[32px]">
                   {p.description || "Tidak ada deskripsi produk."}
                 </p>
                 
                 <div className="flex justify-between items-end mt-4">
                   <p className="text-blue-600 font-black text-lg">Rp {Number(p.price).toLocaleString('id-ID')}</p>
-                  {/* FITUR: STOK DI CARD */}
                   <span className={`text-[10px] font-bold uppercase ${p.stock <= 5 ? 'text-orange-500' : 'text-gray-400'}`}>
                     Stok: {p.stock}
                   </span>
@@ -363,7 +352,6 @@ export default function AdminProducts() {
                 
                 <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
                   <button onClick={() => handleEditClick(p)} className="flex-1 bg-gray-900 text-white py-2 rounded-lg font-bold text-xs hover:bg-blue-600 transition-colors">Edit</button>
-                  {/* FITUR: TOGGLE STATUS BUTTON LANGSUNG DARI CARD */}
                   <button onClick={() => toggleStatus(p)} className="flex-1 bg-gray-100 py-2 rounded-lg font-bold text-xs text-gray-600 hover:bg-gray-200">
                     {p.status === 'Active' ? 'Draftkan' : 'Aktifkan'}
                   </button>
@@ -377,44 +365,56 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {/* MODAL EDIT/BARU (Logika Gambar sudah diperbaiki, Kolom Deskripsi Aman) */}
+      {/* MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
             <h2 className="text-2xl font-black mb-6 uppercase tracking-tight text-gray-900">{isEdit ? "Update Produk" : "Produk Baru"}</h2>
             <form onSubmit={handleSaveProduct} className="space-y-4">
-              <input type="text" placeholder="Nama Produk" className="w-full border-2 p-3 rounded-xl outline-none focus:border-black" value={formData.name} onChange={handleNameChange} required />
+              <div>
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Nama Produk</label>
+                <input type="text" className="w-full border-2 p-3 rounded-xl outline-none focus:border-black" value={formData.name} onChange={handleNameChange} required />
+              </div>
               
               <div className="grid grid-cols-2 gap-4">
-                <input type="number" placeholder="Harga" className="w-full border-2 p-3 rounded-xl outline-none" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required />
-                <input type="number" placeholder="Stok" className="w-full border-2 p-3 rounded-xl outline-none" value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} required />
+                <div>
+                  <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Harga</label>
+                  <input type="number" className="w-full border-2 p-3 rounded-xl outline-none" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Stok</label>
+                  <input type="number" className="w-full border-2 p-3 rounded-xl outline-none" value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} required />
+                </div>
               </div>
 
-              <select className="w-full border-2 p-3 rounded-xl outline-none bg-white" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}>
-                <option value="Active">Active</option>
-                <option value="Draft">Draft</option>
-              </select>
+              <div>
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Status</label>
+                <select className="w-full border-2 p-3 rounded-xl outline-none bg-white" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}>
+                  <option value="Active">Active</option>
+                  <option value="Draft">Draft</option>
+                </select>
+              </div>
 
-              {/* KOLOM DESKRIPSI PRODUK (Yang harus ada) */}
-              <textarea placeholder="Deskripsi Produk" className="w-full border-2 p-3 rounded-xl outline-none h-24 focus:border-black" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+              <div>
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Deskripsi</label>
+                <textarea className="w-full border-2 p-3 rounded-xl outline-none h-24 focus:border-black" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+              </div>
               
-              {/* EXISTING IMAGES (Modal Edit) */}
               {isEdit && existingImages.length > 0 && (
                 <div className="grid grid-cols-4 gap-2 border-t pt-4">
                   {existingImages.map((img) => (
                     <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border bg-gray-50">
-                      <img src={img.url} className="w-full h-full object-cover" alt="existing" onError={(e) => e.target.src="https://placehold.co/150?text=Error"} />
+                      <img src={img.url} className="w-full h-full object-cover" alt="existing" onError={(e) => e.target.src=FALLBACK_IMG} />
                       <button type="button" onClick={() => handleDeleteExistingImage(img.id)} className="absolute top-0 right-0 bg-red-600 text-white w-5 h-5 text-[10px] shadow">✕</button>
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* NEW IMAGES */}
               <div className="pt-4">
                 <input type="file" multiple accept="image/*" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
                 <button type="button" onClick={() => fileInputRef.current.click()} className="w-full border-2 border-dashed p-4 rounded-xl font-bold text-xs uppercase bg-gray-50 text-gray-500 hover:bg-blue-50">
-                  + Tambah Foto Produk
+                  + Pilih Foto Produk
                 </button>
                 <div className="grid grid-cols-4 gap-2 mt-4">
                   {previewUrls.map((url, index) => (
