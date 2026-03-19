@@ -220,10 +220,16 @@ export default function AdminProducts() {
                   {/* Bagian Gambar */}
                   <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
                     <img 
-                      src={p.images && p.images.length > 0 ? p.images[0].url : "https://via.placeholder.com/400x300?text=No+Image"} 
-                      alt={p.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
+                        src={
+                          p.images && p.images.length > 0 
+                            ? p.images[0].url       // Jika API mengirim array images (relasi table)
+                            : p.image               // Jika API mengirim string langsung dari kolom 'image'
+                              ? p.image 
+                              : "https://via.placeholder.com/400x300?text=No+Image"
+                        } 
+                        alt={p.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
                     <div className="absolute top-3 right-3">
                       <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-blue-600 shadow-sm">
                         Stok: {p.stock}
