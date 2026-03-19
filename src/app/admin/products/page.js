@@ -151,34 +151,46 @@ export default function AdminProducts() {
   };
 
   const handleEditClick = async (p) => {
-    setLoading(true);
-    const token = localStorage.getItem("token");
-    try {
-      const res = await fetch(`${API_URL}/${p.id}`, {
-        headers: { "Authorization": `Bearer ${token}` }
+  if (!p) return;
+  setLoading(true);
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch(`${API_URL}/${p.slug}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const result = await res.json();
+    const data = result.data;
+    if (data) {
+      setFormData({
+        name: data.name,
+        slug: data.slug,
+        price: data.price,
+        stock: data.stock,
+        description: data.description || "",
+        status: data.status || "Active",
       });
-      const result = await res.json();
-      const productDetail = result.data;
-      if (productDetail) {
-        setFormData({
-          name: productDetail.name,
-          slug: productDetail.slug,
-          price: productDetail.price,
-          stock: productDetail.stock,
-          description: productDetail.description || "",
-          status: productDetail.status || "Active",
-        });
-        setEditId(productDetail.id);
-        setExistingImages(productDetail.images || []);
-        setIsEdit(true);
-        setShowModal(true);
-      }
-    } catch (err) {
-      console.error("Gagal ambil detail produk:", err);
-    } finally {
-      setLoading(false);
+      setEditId(data.id);
+      // LOGIKA YANG DISESUAIKAN DENGAN DATABASE (image_e3ab82.png)
+      const formattedImages = (data.images || []).map(img => {
+        // Ambil nama file langsung dari kolom 'image' sesuai screenshot MySQL
+        const fileName = img.image || ""; 
+    
+        return {
+          ...img,
+          // Gabungkan langsung dengan STORAGE_URL tanpa manipulasi teks yang aneh-aneh
+          url: `${STORAGE_URL}${fileName}` 
+        };
+      });
+      setExistingImages(formattedImages);
+      setIsEdit(true);
+      setShowModal(true);
     }
-  };
+  } catch (err) {
+    console.error("Gagal ambil detail:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSaveProduct = async (e) => {
     e.preventDefault();
