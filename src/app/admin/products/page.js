@@ -89,7 +89,6 @@ export default function AdminProducts() {
   };
 
   const handleDeleteExistingImage = async (imageId) => {
-    if (!confirm("Hapus foto ini secara permanen?")) return;
     const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${IMAGE_API_URL}/${imageId}`, {
@@ -154,7 +153,6 @@ export default function AdminProducts() {
     setLoading(true);
     const token = localStorage.getItem("token");
     try {
-      // PERBAIKAN: Gunakan p.slug bukan p.id agar sesuai dengan rute API baru kamu
       const res = await fetch(`${API_URL}/${p.slug}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -171,14 +169,22 @@ export default function AdminProducts() {
           description: productDetail.description || "",
           status: productDetail.status || "Active",
         });
-        setEditId(productDetail.id); // ID tetap disimpan untuk proses UPDATE (PUT) nanti
-        setExistingImages(productDetail.images || []);
+        setEditId(productDetail.id);
+        
+        // Memastikan URL gambar lengkap agar muncul di modal
+        const formattedImages = (productDetail.images || []).map(img => ({
+          ...img,
+          url: img.image_path.startsWith('http') 
+               ? img.image_path 
+               : `${STORAGE_URL}${img.image_path}`
+        }));
+        
+        setExistingImages(formattedImages);
         setIsEdit(true);
         setShowModal(true);
       }
     } catch (err) {
       console.error("Gagal ambil detail produk:", err);
-      alert("Gagal mengambil data produk.");
     } finally {
       setLoading(false);
     }
