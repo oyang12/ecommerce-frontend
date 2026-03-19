@@ -5,17 +5,17 @@ export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
   
-  // State untuk file asli (yang akan dikirim ke server)
+  // State untuk file asli dan preview
   const [selectedFiles, setSelectedFiles] = useState([]);
-  // State untuk menyimpan URL pratinjau foto baru
   const [previewUrls, setPreviewUrls] = useState([]);
   
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const [existingImages, setExistingImages] = useState([]);
 
-  // Ref untuk mengontrol input file secara manual agar tulisan "X files" hilang
+  // Ref untuk custom upload button
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -30,6 +30,7 @@ export default function AdminProducts() {
   const IMAGE_API_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/api/product-images";
 
   const fetchProducts = async () => {
+    setFetchLoading(true);
     const token = localStorage.getItem("token");
     try {
       const res = await fetch(API_URL, {
@@ -39,6 +40,8 @@ export default function AdminProducts() {
       setProducts(result.data || []); 
     } catch (err) {
       console.error("Gagal fetch:", err);
+    } finally {
+      setFetchLoading(false);
     }
   };
 
@@ -49,17 +52,10 @@ export default function AdminProducts() {
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
-
-    // Tambahkan file baru ke daftar yang sudah ada
     const updatedFiles = [...selectedFiles, ...files];
     setSelectedFiles(updatedFiles);
-
-    // Buat URL preview
     const newPreviewUrls = files.map((file) => URL.createObjectURL(file));
     setPreviewUrls([...previewUrls, ...newPreviewUrls]);
-
-    // PENTING: Reset value input file ke null agar tulisan "X files" di sistem hilang
-    // dan user bisa memilih file yang sama lagi jika tadi sempat dihapus.
     e.target.value = null;
   };
 
@@ -144,7 +140,6 @@ export default function AdminProducts() {
     e.preventDefault();
     setLoading(true);
     const token = localStorage.getItem("token");
-
     const dataToSend = new FormData();
     dataToSend.append("name", formData.name);
     dataToSend.append("slug", formData.slug);
@@ -167,7 +162,6 @@ export default function AdminProducts() {
         headers: { "Authorization": `Bearer ${token}` },
         body: dataToSend
       });
-
       if (res.ok) {
         alert(isEdit ? "Produk Berhasil Diperbarui!" : "Produk Berhasil Ditambah!");
         closeModal();
@@ -195,61 +189,85 @@ export default function AdminProducts() {
   };
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen font-sans text-black">
-      <div className="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-md border border-gray-200">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Manajemen Produk MyStore</h1>
+    <div className="p-6 bg-gray-50 min-h-screen font-sans text-black">
+      <div className="max-w-7xl mx-auto">
+        {/* HEADER SECTION */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Manajemen Produk</h1>
+            <p className="text-gray-500 mt-1">Kelola inventaris dan tampilan produk toko Anda.</p>
+          </div>
           <button 
             onClick={() => { closeModal(); setShowModal(true); }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold transition shadow-md"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-200 flex items-center gap-2 active:scale-95"
           >
-            + Tambah Produk Baru
+            <span className="text-xl">+</span> Tambah Produk Baru
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-100 border-b text-gray-600 uppercase text-xs">
-                <th className="p-4 text-left">Nama Produk</th>
-                <th className="p-4 text-left">Slug</th>
-                <th className="p-4 text-left">Stok</th>
-                <th className="p-4 text-left">Harga</th>
-                <th className="p-4 text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.length > 0 ? (
-                products.map((p) => (
-                  <tr key={p.id} className="border-b hover:bg-gray-50 transition">
-                    <td className="p-4 font-medium text-gray-800">{p.name}</td>
-                    <td className="p-4 text-gray-500 text-sm">{p.slug}</td>
-                    <td className="p-4 text-gray-700">{p.stock}</td>
-                    <td className="p-4 font-semibold text-blue-600">
-                      Rp {Number(p.price).toLocaleString()}
-                    </td>
-                    <td className="p-4 text-center flex justify-center gap-4">
-                      <button onClick={() => handleEditClick(p)} className="text-blue-500 hover:underline font-medium disabled:opacity-50" disabled={loading}>
-                        {loading && editId === p.id ? "..." : "Edit"}
-                      </button>
-                      <button onClick={() => handleDeleteProduct(p.id)} className="text-red-500 hover:underline font-medium">Hapus</button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr><td colSpan="5" className="p-10 text-center text-gray-400">Belum ada produk.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        {/* LOADING & CARD GRID */}
+        {fetchLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="bg-white rounded-2xl h-80 animate-pulse border border-gray-100"></div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {products.length > 0 ? (
+              products.map((p) => (
+                <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col">
+                  {/* Bagian Gambar */}
+                  <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+                    <img 
+                      src={p.images && p.images.length > 0 ? p.images[0].url : "https://via.placeholder.com/400x300?text=No+Image"} 
+                      alt={p.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute top-3 right-3">
+                      <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-blue-600 shadow-sm">
+                        Stok: {p.stock}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Konten Text */}
+                  <div className="p-5 flex-grow">
+                    <h3 className="text-lg font-bold text-gray-800 line-clamp-1 group-hover:text-blue-600 transition-colors">{p.name}</h3>
+                    <p className="text-blue-600 font-black text-xl mt-2">Rp {Number(p.price).toLocaleString('id-ID')}</p>
+                    <p className="text-gray-400 text-sm mt-2 line-clamp-2 italic">{p.description || "Tidak ada deskripsi produk."}</p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="p-4 bg-gray-50 border-t border-gray-100 grid grid-cols-2 gap-3">
+                    <button 
+                      onClick={() => handleEditClick(p)}
+                      disabled={loading}
+                      className="w-full bg-white border border-blue-600 text-blue-600 py-2.5 rounded-lg font-bold text-sm hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+                    >
+                      {loading && editId === p.id ? "..." : "✎ Edit"}
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteProduct(p.id)}
+                      className="w-full bg-red-500 text-white py-2.5 rounded-lg font-bold text-sm hover:bg-red-600 transition-colors shadow-sm flex items-center justify-center gap-2"
+                    >
+                      🗑️ Hapus
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full py-20 text-center text-gray-400">Belum ada produk.</div>
+            )}
+          </div>
+        )}
       </div>
 
+      {/* MODAL FORM */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">
-              {isEdit ? "Edit Data Produk" : "Input Data Produk"}
-            </h2>
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">{isEdit ? "Edit Data Produk" : "Input Data Produk"}</h2>
             <form onSubmit={handleSaveProduct} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold mb-1">Nama Produk</label>
@@ -281,53 +299,40 @@ export default function AdminProducts() {
                   value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})}></textarea>
               </div>
 
-              {/* FOTO YANG SUDAH ADA DI DATABASE (MODE EDIT) */}
+              {/* FOTO DATABASE (EDIT) */}
               {isEdit && existingImages.length > 0 && (
                 <div className="border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
-                  <label className="block text-sm font-semibold mb-2 text-gray-700 font-mono">Foto Saat Ini (Database)</label>
+                  <label className="block text-sm font-semibold mb-2 text-gray-700">Foto Saat Ini</label>
                   <div className="grid grid-cols-4 gap-2">
                     {existingImages.map((img) => (
-                      <div key={img.id} className="relative aspect-square border-2 border-white rounded-lg shadow-sm overflow-hidden">
+                      <div key={img.id} className="relative aspect-square rounded-lg shadow-sm overflow-hidden border border-white">
                         <img src={img.url} className="w-full h-full object-cover" />
-                        <button type="button" onClick={() => handleDeleteExistingImage(img.id)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-md hover:bg-red-700 transition-colors">✕</button>
+                        <button type="button" onClick={() => handleDeleteExistingImage(img.id)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">✕</button>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* PRATINJAU FOTO BARU YANG AKAN DIUPLOAD */}
+              {/* PREVIEW FOTO BARU */}
               {previewUrls.length > 0 && (
                 <div className="border border-dashed border-blue-200 rounded-lg p-4 bg-blue-50">
-                  <label className="block text-sm font-semibold mb-2 text-blue-700 font-mono">Pratinjau Foto Baru</label>
+                  <label className="block text-sm font-semibold mb-2 text-blue-700">Pratinjau Foto Baru</label>
                   <div className="grid grid-cols-4 gap-2">
                     {previewUrls.map((url, index) => (
-                      <div key={index} className="relative aspect-square border-2 border-white rounded-lg shadow-sm overflow-hidden">
+                      <div key={index} className="relative aspect-square rounded-lg shadow-sm overflow-hidden border border-white">
                         <img src={url} className="w-full h-full object-cover" />
-                        <button type="button" onClick={() => handleRemovePreview(index)} className="absolute top-1 right-1 bg-gray-800 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-md hover:bg-black transition-colors">✕</button>
+                        <button type="button" onClick={() => handleRemovePreview(index)} className="absolute top-1 right-1 bg-gray-800 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">✕</button>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* TOMBOL PILIH FOTO (KUSTOM) */}
+              {/* CUSTOM UPLOAD BUTTON */}
               <div className="mt-4">
-                <label className="block text-sm font-semibold mb-2 text-blue-600">
-                  {isEdit ? "Tambah Foto Baru (Pilih untuk menambah)" : "Upload Foto Produk"}
-                </label>
-                
-                {/* Input file asli (DISEMBUNYIKAN) */}
-                <input 
-                  type="file" 
-                  multiple 
-                  accept="image/*" 
-                  ref={fileInputRef}
-                  className="hidden" 
-                  onChange={handleFileChange} 
-                />
-
-                {/* Tombol Pengganti yang terlihat oleh User */}
+                <label className="block text-sm font-semibold mb-2 text-blue-600">{isEdit ? "Tambah Foto Baru" : "Upload Foto Produk"}</label>
+                <input type="file" multiple accept="image/*" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
                 <button
                   type="button"
                   onClick={() => fileInputRef.current.click()}
@@ -335,13 +340,12 @@ export default function AdminProducts() {
                 >
                   <span className="text-2xl font-bold group-hover:scale-125 transition-transform">+</span>
                   <span className="font-semibold text-sm">Pilih File Foto</span>
-                  <p className="text-[10px] text-gray-400 italic">*Bisa pilih banyak foto sekaligus</p>
                 </button>
               </div>
 
               <div className="flex justify-end gap-3 mt-8 border-t pt-4">
                 <button type="button" onClick={closeModal} className="px-4 py-2 text-gray-500 hover:text-gray-700 font-medium">Batal</button>
-                <button type="submit" disabled={loading} className="bg-blue-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400 transition shadow-lg flex items-center gap-2">
+                <button type="submit" disabled={loading} className="bg-blue-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400 shadow-lg flex items-center gap-2">
                   {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>}
                   {loading ? "Proses..." : isEdit ? "Update Produk" : "Simpan Produk"}
                 </button>
