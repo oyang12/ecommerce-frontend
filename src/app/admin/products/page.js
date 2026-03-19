@@ -279,6 +279,43 @@ export default function AdminProducts() {
         )}
       </div>
 
+      {/* --- FITUR #1: DASHBOARD STATISTIK --- */}
+      {!fetchLoading && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+          {/* Total Produk */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-blue-500 transition-all">
+            <div>
+              <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Total Produk</p>
+              <h2 className="text-3xl font-black text-gray-900 mt-1">{products.length}</h2>
+            </div>
+            <div className="bg-blue-50 text-blue-600 p-3 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all text-2xl">📦</div>
+          </div>
+      
+          {/* Stok Menipis */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-orange-500 transition-all">
+            <div>
+              <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Stok Menipis (&lt;5)</p>
+              <h2 className="text-3xl font-black text-orange-600 mt-1">
+                {products.filter(p => p.stock > 0 && p.stock < 5).length}
+              </h2>
+            </div>
+            <div className="bg-orange-50 text-orange-600 p-3 rounded-xl group-hover:bg-orange-600 group-hover:text-white transition-all text-2xl">⚠️</div>
+          </div>
+      
+          {/* Stok Habis */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-red-500 transition-all">
+            <div>
+              <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Stok Habis</p>
+              <h2 className="text-3xl font-black text-red-600 mt-1">
+                {products.filter(p => p.stock <= 0).length}
+              </h2>
+            </div>
+            <div className="bg-red-50 text-red-600 p-3 rounded-xl group-hover:bg-red-600 group-hover:text-white transition-all text-2xl">🚫</div>
+          </div>
+        </div>
+      )}
+
+
       {/* MODAL FORM */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
