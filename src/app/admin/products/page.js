@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchProducts, deleteProduct } from '../services/api'; 
+import { fetchProducts, deleteProduct } from '../../../services/api'; 
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
