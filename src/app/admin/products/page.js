@@ -341,11 +341,11 @@ export default function AdminProducts() {
               products.map((p) => (
                 <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col">
                   {/* Gambar */}
-                  {/* --- CHECKBOX BULK DELETE --- */}
-                  <div className="absolute top-3 left-3 z-20">
+                  {/* CHECKBOX BULK DELETE - Sekarang menggunakan posisi yang lebih pas */}
+                  <div className="absolute top-4 left-4 z-30">
                     <input 
                       type="checkbox" 
-                      className="w-5 h-5 rounded-lg border-2 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer shadow-md transition-all accent-blue-600"
+                      className="w-5 h-5 rounded-md border-2 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer shadow-sm transition-all accent-blue-600 w-6 h-6"
                       checked={selectedProductIds.includes(p.id)}
                       onChange={(e) => {
                         if (e.target.checked) {
@@ -356,8 +356,8 @@ export default function AdminProducts() {
                       }}
                     />
                   </div>
-          
-          
+                
+                  {/* Container Gambar */}
                   <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
                     <img 
                       src={
@@ -369,18 +369,17 @@ export default function AdminProducts() {
                       } 
                       alt={p.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      onError={(e) => {
-                        e.target.onerror = null; 
-                        e.target.src = "https://via.placeholder.com/400x300?text=Error+Loading";
-                      }}
                     />
-                    <div className="absolute top-3 right-3">
-                      <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-blue-600 shadow-sm border border-gray-100">
+                    
+                    {/* Badge Stok */}
+                    <div className="absolute top-3 right-3 z-20">
+                      <span className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-blue-600 shadow-sm border border-gray-100 uppercase tracking-tighter">
                         Stok: {p.stock}
                       </span>
                     </div>
-                  </div>
-
+                  </div>                                              
+          
+        
                   {/* Info */}
                   <div className="p-5 flex-grow">
                     <h3 className="text-lg font-bold text-gray-800 line-clamp-1 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{p.name}</h3>
