@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState, useRef } from "react";
 
 export default function AdminProducts() {
@@ -33,7 +34,7 @@ export default function AdminProducts() {
 
   const fetchProducts = async () => {
     setFetchLoading(true);
-    const token = localStorage.getItem("token");
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
     try {
       const res = await fetch(API_URL, {
         headers: { "Authorization": `Bearer ${token}` }
@@ -256,7 +257,7 @@ export default function AdminProducts() {
           </button>
         </div>
 
-        {/* 1. STATISTIK */}
+        {/* STATISTIK */}
         {!fetchLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -278,7 +279,7 @@ export default function AdminProducts() {
           </div>
         )}
 
-        {/* 2. CATEGORY & SEARCH */}
+        {/* SEARCH & FILTER */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-grow">
             <input 
@@ -297,7 +298,7 @@ export default function AdminProducts() {
           </select>
         </div>
 
-        {/* 3. BULK DELETE & SELECT ALL */}
+        {/* BULK ACTIONS */}
         <div className="flex justify-between items-center mb-4">
           <button 
             onClick={() => selectedProductIds.length === filteredProducts.length ? setSelectedProductIds([]) : setSelectedProductIds(filteredProducts.map(p => p.id))}
@@ -313,7 +314,7 @@ export default function AdminProducts() {
           )}
         </div>
 
-        {/* GRID PRODUK */}
+        {/* GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((p) => (
             <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300">
@@ -336,6 +337,7 @@ export default function AdminProducts() {
                 <img 
                   src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : "https://via.placeholder.com/400x300"} 
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                  alt={p.name}
                 />
               </div>
 
@@ -352,9 +354,8 @@ export default function AdminProducts() {
                 </div>
               </div>
 
-              {/* ACTION BUTTONS (ALWAYS VISIBLE) */}
               <div className="p-4 bg-gray-50 border-t flex gap-2 mt-4">
-                <button onClick={() => handleEditClick(p)} className="flex-1 bg-white border border-gray-200 py-2 rounded-xl font-bold text-xs hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all">✎ Edit</button>
+                <button onClick={() => handleEditClick(p)} className="flex-1 bg-white border border-gray-200 py-2 rounded-xl font-bold text-xs hover:bg-gray-900 hover:text-white transition-all">✎ Edit</button>
                 <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 py-2 rounded-xl font-bold text-xs hover:bg-red-600 hover:text-white transition-all">🗑 Hapus</button>
               </div>
             </div>
@@ -362,82 +363,54 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {/* MODAL FORM */}
+      {/* MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
             <h2 className="text-2xl font-black mb-6 uppercase tracking-tight text-gray-900">{isEdit ? "Update Produk" : "Produk Baru"}</h2>
             <form onSubmit={handleSaveProduct} className="space-y-4">
-              
               <div>
                 <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Nama Produk</label>
-                <input type="text" placeholder="Nama Produk" className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400" value={formData.name} onChange={handleNameChange} required />
+                <input type="text" className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400" value={formData.name} onChange={handleNameChange} required />
               </div>
-
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Harga</label>
-                  <input type="number" placeholder="Harga" className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Stok</label>
-                  <input type="number" placeholder="Stok" className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400" value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} required />
-                </div>
+                <input type="number" placeholder="Harga" className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required />
+                <input type="number" placeholder="Stok" className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400" value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} required />
               </div>
+              <select className="w-full border-2 border-gray-100 p-3 rounded-xl font-bold bg-white" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}>
+                <option value="Active">Active</option>
+                <option value="Draft">Draft</option>
+              </select>
+              <textarea placeholder="Deskripsi" className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400" rows="3" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})}></textarea>
               
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Status</label>
-                <select 
-                  className="w-full border-2 border-gray-100 p-3 rounded-xl font-bold bg-white outline-none focus:border-blue-400 cursor-pointer"
-                  value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}
-                >
-                  <option value="Active">Active (Muncul di Toko)</option>
-                  <option value="Draft">Draft (Sembunyikan)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Deskripsi</label>
-                <textarea placeholder="Deskripsi" className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400" rows="3" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})}></textarea>
-              </div>
-
-              {/* UPLOAD GAMBAR */}
-              <div className="border-t border-gray-100 pt-4 mt-2">
-                <label className="block text-sm font-bold text-gray-800 mb-3 text-center">Gambar Produk</label>
-                
+              <div className="border-t pt-4">
                 {isEdit && existingImages.length > 0 && (
-                  <div className="bg-gray-50 p-3 rounded-2xl mb-4 border border-gray-100">
-                    <div className="grid grid-cols-4 gap-2">
-                      {existingImages.map((img) => (
-                        <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border">
-                          <img src={img.url} className="w-full h-full object-cover" />
-                          <button type="button" onClick={() => handleDeleteExistingImage(img.id)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-[10px] hover:bg-red-700">✕</button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <input type="file" multiple accept="image/*" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
-                <button type="button" onClick={() => fileInputRef.current.click()} className="w-full border-2 border-dashed p-4 rounded-2xl bg-gray-50 text-gray-500 hover:bg-blue-50 transition-all font-bold text-xs uppercase tracking-widest hover:border-blue-200">
-                  + Pilih Foto Produk
-                </button>
-
-                {previewUrls.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2 mt-4">
-                    {previewUrls.map((url, index) => (
-                      <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-blue-200 shadow-sm">
-                        <img src={url} className="w-full h-full object-cover" />
-                        <button type="button" onClick={() => handleRemovePreview(index)} className="absolute top-1 right-1 bg-black text-white rounded-full w-5 h-5 text-[10px] hover:bg-red-600">✕</button>
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    {existingImages.map((img) => (
+                      <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border">
+                        <img src={img.url} className="w-full h-full object-cover" alt="existing" />
+                        <button type="button" onClick={() => handleDeleteExistingImage(img.id)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-[10px]">✕</button>
                       </div>
                     ))}
                   </div>
                 )}
+                <input type="file" multiple accept="image/*" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
+                <button type="button" onClick={() => fileInputRef.current.click()} className="w-full border-2 border-dashed p-4 rounded-2xl bg-gray-50 text-gray-500 font-bold text-xs uppercase hover:bg-blue-50 transition-all">
+                  + Pilih Foto Produk
+                </button>
+                <div className="grid grid-cols-4 gap-2 mt-4">
+                  {previewUrls.map((url, index) => (
+                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden border">
+                      <img src={url} className="w-full h-full object-cover" alt="preview" />
+                      <button type="button" onClick={() => handleRemovePreview(index)} className="absolute top-1 right-1 bg-black text-white rounded-full w-5 h-5 text-[10px]">✕</button>
+                    </div>
+                  ))}
+                </div>
               </div>
-              
-              <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
-                <button type="button" onClick={closeModal} className="px-6 font-bold text-gray-400 hover:text-gray-600 transition-colors uppercase text-xs tracking-widest">Batal</button>
-                <button type="submit" disabled={loading} className="bg-gray-900 hover:bg-blue-600 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg active:scale-95 text-xs uppercase tracking-widest flex items-center gap-2">
+
+              <div className="flex justify-end gap-3 pt-6 border-t">
+                <button type="button" onClick={closeModal} className="px-6 font-bold text-gray-400 uppercase text-xs">Batal</button>
+                <button type="submit" disabled={loading} className="bg-gray-900 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg active:scale-95 text-xs uppercase">
                   {loading ? "Memproses..." : "Simpan Produk"}
                 </button>
               </div>
