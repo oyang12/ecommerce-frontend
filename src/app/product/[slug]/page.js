@@ -15,7 +15,7 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(null);
 
-  const API_URL = `https://ecommerce-backend-production-aa2e.up.railway.app/api/products/${slug}`;
+  const API_URL = `https://ecommerce-backend-production-aa2e.up.railway.app/api/product/${slug}`;
   const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
 
   useEffect(() => {
