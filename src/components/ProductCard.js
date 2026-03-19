@@ -3,8 +3,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default function ProductCard({ product: p }) {
-  // URL Storage yang disamakan dengan Admin
+export default function ProductDetailPage() {
+  const params = useParams();
+  const slug = params?.slug; 
+
+  // TETAP GUNAKAN /products/ di sini karena ini alamat API Backend kamu
+  const API_URL = `https://ecommerce-backend-production-aa2e.up.railway.app/api/products/${slug}`;
+  
+  // Storage juga biasanya pakai jamak (products)
   const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
 
   return (
