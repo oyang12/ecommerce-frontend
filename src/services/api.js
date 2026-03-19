@@ -25,7 +25,7 @@ export const fetchProducts = async () => {
 // ✅ tambahkan export ini
 export const fetchProductDetail = async (slug) => {
   try {
-    const res = await api.get(`/products/${slug}`);
+    const res = await api.get(`/product/${slug}`);
     return res.data.data || res.data;
   } catch (err) {
     console.error('Error fetching product detail:', err);
