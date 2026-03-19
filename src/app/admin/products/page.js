@@ -150,72 +150,86 @@ export default function AdminProducts() {
   };
 
   const handleEditClick = async (p) => {
-  if (!p) return;
-  setLoading(true);
-  const token = localStorage.getItem("token");
-  try {
-    const res = await fetch(`${API_URL}/${p.slug}`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
-    const result = await res.json();
-    const data = result.data;
-    if (data) {
-      setFormData({
-        name: data.name,
-        slug: data.slug,
-        price: data.price,
-        stock: data.stock,
-        description: data.description || "",
-        status: data.status || "Active",
-      });
-      setEditId(data.id);
-      // LOGIKA YANG DISESUAIKAN DENGAN DATABASE (image_e3ab82.png)
-      const formattedImages = (data.images || []).map(img => {
-        // Ambil nama file langsung dari kolom 'image' sesuai screenshot MySQL
-        const fileName = img.image || ""; 
-    
-        return {
-          ...img,
-          // Gabungkan langsung dengan STORAGE_URL tanpa manipulasi teks yang aneh-aneh
-          url: `${STORAGE_URL}${fileName}` 
-        };
-      });
-      setExistingImages(formattedImages);
-      setIsEdit(true);
-      setShowModal(true);
-    }
-  } catch (err) {
-    console.error("Gagal ambil detail:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const handleSaveProduct = async () => {
-    const formData = new FormData();
-    formData.append('name', currentProduct.name);
-    formData.append('price', currentProduct.price);
-    formData.append('stock', currentProduct.stock);
-    formData.append('description', currentProduct.description || ""); // Kirim string kosong jika null
-    
-    // Logic Slug: Pastikan slug terisi
-    const slug = currentProduct.name.toLowerCase().replace(/ /g, '-');
-    formData.append('slug', slug);
-  
-    // Hanya append gambar jika ada file yang dipilih
-    if (selectedFile) {
-      formData.append('image', selectedFile);
-    }
-    if (selectedThumbnail) {
-      formData.append('thumbnail', selectedThumbnail);
-    }
-  
+    if (!p) return;
+    setLoading(true);
+    const token = localStorage.getItem("token");
     try {
-      const response = await axios.post('/api/products', formData);
-      // ... logic sukses
-    } catch (error) {
-      console.error("Detail Error:", error.response?.data); 
-      // ^ LIHAT DI SINI: Ini akan memberitahu kolom mana yang bikin error
+      const res = await fetch(`${API_URL}/${p.slug}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const result = await res.json();
+      const data = result.data;
+      if (data) {
+        setFormData({
+          name: data.name,
+          slug: data.slug,
+          price: data.price,
+          stock: data.stock,
+          description: data.description || "",
+          status: data.status || "Active",
+        });
+        setEditId(data.id);
+        const formattedImages = (data.images || []).map(img => {
+          const fileName = img.image || ""; 
+          return {
+            ...img,
+            url: `${STORAGE_URL}${fileName}` 
+          };
+        });
+        setExistingImages(formattedImages);
+        setIsEdit(true);
+        setShowModal(true);
+      }
+    } catch (err) {
+      console.error("Gagal ambil detail:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // BAGIAN YANG DIPERBARUI SESUAI LOGIKA YANG BERHASIL
+  const handleSaveProduct = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const token = localStorage.getItem("token");
+
+    const dataToSend = new FormData();
+    dataToSend.append("name", formData.name);
+    dataToSend.append("slug", formData.slug);
+    dataToSend.append("price", formData.price);
+    dataToSend.append("stock", formData.stock);
+    dataToSend.append("description", formData.description || "");
+    dataToSend.append("status", formData.status);
+
+    // Menggunakan loop for seperti kode handleAddProduct yang kamu berikan
+    if (selectedFiles.length > 0) {
+      for (let i = 0; i < selectedFiles.length; i++) {
+        dataToSend.append("images[]", selectedFiles[i]); 
+      }
+    }
+
+    const url = isEdit ? `${API_URL}/${editId}` : API_URL;
+    if (isEdit) dataToSend.append("_method", "PUT");
+
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: dataToSend
+      });
+
+      if (res.ok) {
+        alert(isEdit ? "Produk Berhasil Diperbarui!" : "Produk Berhasil Ditambah!");
+        closeModal();
+        fetchProducts();
+      } else {
+        const errData = await res.json();
+        alert("Gagal: " + JSON.stringify(errData));
+      }
+    } catch (err) {
+      alert("Error koneksi ke server");
+    } finally {
+      setLoading(false);
     }
   };
 
