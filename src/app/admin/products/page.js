@@ -154,11 +154,14 @@ export default function AdminProducts() {
     setLoading(true);
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`${API_URL}/${p.id}`, {
+      // PERBAIKAN: Gunakan p.slug bukan p.id agar sesuai dengan rute API baru kamu
+      const res = await fetch(`${API_URL}/${p.slug}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
+      
       const result = await res.json();
       const productDetail = result.data;
+      
       if (productDetail) {
         setFormData({
           name: productDetail.name,
@@ -168,13 +171,14 @@ export default function AdminProducts() {
           description: productDetail.description || "",
           status: productDetail.status || "Active",
         });
-        setEditId(productDetail.id);
+        setEditId(productDetail.id); // ID tetap disimpan untuk proses UPDATE (PUT) nanti
         setExistingImages(productDetail.images || []);
         setIsEdit(true);
         setShowModal(true);
       }
     } catch (err) {
       console.error("Gagal ambil detail produk:", err);
+      alert("Gagal mengambil data produk.");
     } finally {
       setLoading(false);
     }
