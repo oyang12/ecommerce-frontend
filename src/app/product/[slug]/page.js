@@ -3,23 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 
-// 1. FUNGSI UNTUK VERCEL (Tambahkan ini agar rute terdaftar)
-export async function generateStaticParams() {
-  try {
-    const res = await fetch('https://ecommerce-backend-production-aa2e.up.railway.app/api/products');
-    const result = await res.json();
-    const products = result.data || [];
-
-    return products.map((product) => ({
-      slug: product.slug,
-    }));
-  } catch (error) {
-    return [];
-  }
-}
+// HAPUS generateStaticParams dari sini karena bentrok dengan 'use client'
+// Kita gunakan export const dynamic sebagai gantinya agar Vercel tahu ini halaman dinamis
+export const runtime = 'edge'; 
 
 export default function ProductDetailPage() {
-  const { slug } = useParams();
+  const params = useParams();
+  const slug = params?.slug; // Ambil slug dengan aman
+  
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(null);
@@ -28,9 +19,11 @@ export default function ProductDetailPage() {
   const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
 
   useEffect(() => {
+    if (!slug) return;
+
     const fetchDetail = async () => {
       try {
-        const res = await fetch(API_URL);
+        const res = await fetch(API_URL, { cache: 'no-store' });
         const result = await res.json();
         if (result.data) {
           setProduct(result.data);
@@ -42,12 +35,13 @@ export default function ProductDetailPage() {
         setLoading(false);
       }
     };
-    if (slug) fetchDetail();
-  }, [slug]);
+
+    fetchDetail();
+  }, [slug, API_URL]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-gray-900"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-gray-900 border-opacity-50"></div>
     </div>
   );
 
@@ -55,7 +49,7 @@ export default function ProductDetailPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
         <p className="font-black uppercase tracking-widest text-gray-400">Produk tidak ditemukan</p>
-        <button onClick={() => window.history.back()} className="mt-4 text-xs font-bold text-blue-600 uppercase underline">Kembali</button>
+        <button onClick={() => window.history.back()} className="mt-4 text-xs font-bold text-blue-600 uppercase underline tracking-tighter">Kembali ke Katalog</button>
       </div>
     </div>
   );
@@ -71,20 +65,20 @@ export default function ProductDetailPage() {
         
         <button 
           onClick={() => window.history.back()}
-          className="mb-8 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
+          className="mb-8 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-black transition-all"
         >
           ← Kembali ke Katalog
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           
-          {/* GALLERY */}
+          {/* GALLERY SECTION */}
           <div className="space-y-4">
-            <div className="aspect-square bg-white rounded-3xl overflow-hidden border border-gray-200 shadow-sm">
+            <div className="aspect-square bg-white rounded-3xl overflow-hidden border border-gray-200 shadow-sm group">
               <img 
                 src={`${STORAGE_URL}${activeImage}`} 
                 alt={product.name} 
-                className="w-full h-full object-cover transition-all duration-500"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             </div>
             
@@ -95,7 +89,7 @@ export default function ProductDetailPage() {
                     key={idx}
                     onClick={() => setActiveImage(img.image_path || img.thumbnail)}
                     className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${
-                      activeImage === (img.image_path || img.thumbnail) ? 'border-gray-900 shadow-md scale-95' : 'border-transparent opacity-60'
+                      activeImage === (img.image_path || img.thumbnail) ? 'border-gray-900 shadow-md scale-95' : 'border-transparent opacity-50 hover:opacity-100'
                     }`}
                   >
                     <img src={`${STORAGE_URL}${img.image_path || img.thumbnail}`} className="w-full h-full object-cover" />
@@ -105,7 +99,7 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* INFO */}
+          {/* INFO SECTION */}
           <div className="flex flex-col justify-center">
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-2">
               {product.category || "Original Collection"}
@@ -118,8 +112,8 @@ export default function ProductDetailPage() {
               <p className="text-3xl font-black text-gray-900">
                 Rp {Number(product.price).toLocaleString('id-ID')}
               </p>
-              <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
+              <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                product.stock > 0 ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-600 border-red-100'
               }`}>
                 {product.stock > 0 ? `Ready Stok: ${product.stock}` : 'Stok Habis'}
               </span>
@@ -133,13 +127,13 @@ export default function ProductDetailPage() {
                 </p>
               </div>
 
-              <div className="pt-6 flex flex-col sm:flex-row gap-4">
+              <div className="pt-6">
                 <button 
                   onClick={handleOrder}
                   disabled={product.stock <= 0}
-                  className="flex-1 bg-gray-900 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl active:scale-95 disabled:bg-gray-300"
+                  className="w-full bg-gray-900 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
-                  Pesan Sekarang (WA)
+                  Pesan Sekarang (WhatsApp)
                 </button>
               </div>
             </div>
