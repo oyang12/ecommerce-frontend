@@ -23,8 +23,8 @@ export default function ProductDetailPage() {
         const result = await res.json();
         if (result.data) {
           setProduct(result.data);
-          // Set thumbnail sebagai gambar utama di awal
-          setActiveImage(result.data.thumbnail || (result.data.images?.[0]?.image_path));
+          // PERBAIKAN: Menggunakan .image sesuai struktur database
+          setActiveImage(result.data.thumbnail || (result.data.images?.[0]?.image));
         }
       } catch (err) {
         console.error("Gagal memuat detail produk:", err);
@@ -92,12 +92,12 @@ export default function ProductDetailPage() {
                 {product.images.map((img, idx) => (
                   <button 
                     key={idx}
-                    onClick={() => setActiveImage(img.image_path)}
+                    onClick={() => setActiveImage(img.image)} // PERBAIKAN: Menggunakan .image
                     className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${
-                      activeImage === img.image_path ? 'border-gray-900 shadow-md scale-95' : 'border-transparent opacity-50 hover:opacity-100'
+                      activeImage === img.image ? 'border-gray-900 shadow-md scale-95' : 'border-transparent opacity-50 hover:opacity-100'
                     }`}
                   >
-                    <img src={`${STORAGE_URL}${img.image_path}`} className="w-full h-full object-cover" alt={`gallery-${idx}`} />
+                    <img src={`${STORAGE_URL}${img.image}`} className="w-full h-full object-cover" alt={`gallery-${idx}`} />
                   </button>
                 ))}
               </div>
