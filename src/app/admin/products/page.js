@@ -163,9 +163,7 @@ setExistingImages(formattedExistingImages);
         headers: { "Authorization": `Bearer ${token}` }
       });
       const result = await res.json();
-      
-      // Gunakan data dari result.data secara langsung atau simpan ke konstanta
-      const data = result.data; 
+      const data = result.data; // Gunakan 'data' agar tidak tertukar
 
       if (data) {
         setFormData({
@@ -178,9 +176,9 @@ setExistingImages(formattedExistingImages);
         });
         setEditId(data.id);
 
-        // Perbaikan Path Gambar agar tidak pecah
+        // Perbaikan Path Gambar
         const formattedImages = (data.images || []).map(img => {
-          // Bersihkan path jika ada double 'products/' dari database
+          // Menghapus prefix 'products/' jika database menyimpannya double
           const cleanPath = img.image_path.replace(/^products\//, "");
           return {
             ...img,
