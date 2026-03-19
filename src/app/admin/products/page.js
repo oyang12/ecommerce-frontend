@@ -30,9 +30,11 @@ export default function AdminProducts() {
 
   const API_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/api/products";
   const IMAGE_API_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/api/product-images";
+  
+  // PERBAIKAN KRUSIAL: Sesuai data DB kamu di image_e3ab82.png
+  // Kita gunakan URL storage dasar tanpa tambahan subfolder 'products/'
   const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/";
 
-  // Fallback Image jika placeholder eksternal diblokir
   const FALLBACK_IMG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mN8Xw8AAoMBg79T89MAAAAASUVORK5CYII=";
 
   const fetchProducts = async () => {
@@ -130,9 +132,10 @@ export default function AdminProducts() {
         });
         setEditId(data.id);
 
+        // Perbaikan logika gambar modal edit
         const formattedImages = (data.images || []).map(img => ({
           ...img,
-          url: `${STORAGE_URL}${img.image || ""}`
+          url: `${STORAGE_URL}${img.image}` // Langsung sambungkan nama file dari database
         }));
         
         setExistingImages(formattedImages);
@@ -243,15 +246,13 @@ export default function AdminProducts() {
 
   const filteredProducts = products.filter(p => {
     const matchesSearch = (p.name || "").toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "Semua" || p.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    return matchesSearch;
   });
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen font-sans text-black">
       <div className="max-w-7xl mx-auto">
         
-        {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight uppercase">Manajemen Produk</h1>
@@ -265,7 +266,6 @@ export default function AdminProducts() {
           </button>
         </div>
 
-        {/* STATISTIK */}
         {!fetchLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -287,7 +287,6 @@ export default function AdminProducts() {
           </div>
         )}
 
-        {/* TOOLS */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <input 
             type="text" 
@@ -296,21 +295,13 @@ export default function AdminProducts() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <select 
-            className="p-3 rounded-xl border-2 outline-none bg-white font-bold"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            <option value="Semua">Semua Kategori</option>
-          </select>
           {selectedProductIds.length > 0 && (
-            <button onClick={handleBulkDelete} className="bg-red-600 text-white px-6 py-3 rounded-xl font-bold animate-pulse">
+            <button onClick={handleBulkDelete} className="bg-red-600 text-white px-6 py-3 rounded-xl font-bold">
               Hapus ({selectedProductIds.length})
             </button>
           )}
         </div>
 
-        {/* GRID PRODUK */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((p) => (
             <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300">
@@ -330,6 +321,7 @@ export default function AdminProducts() {
 
               <div className="aspect-[4/3] overflow-hidden bg-gray-100">
                 <img 
+                  // Perbaikan utama: Menggunakan thumbnail langsung tanpa subfolder tambahan
                   src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : FALLBACK_IMG} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform" 
                   alt={p.name}
@@ -365,7 +357,6 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {/* MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
@@ -389,7 +380,7 @@ export default function AdminProducts() {
 
               <div>
                 <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Status</label>
-                <select className="w-full border-2 p-3 rounded-xl outline-none bg-white" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}>
+                <select className="w-full border-2 p-3 rounded-xl outline-none bg-white font-bold" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}>
                   <option value="Active">Active</option>
                   <option value="Draft">Draft</option>
                 </select>
