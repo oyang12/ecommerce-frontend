@@ -10,6 +10,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchProducts().then((res) => {
+      // Pastikan mengambil array data dengan benar
       const dataArray = res.data ? res.data : res;
       setProducts(Array.isArray(dataArray) ? dataArray : []);
       setLoading(false);
@@ -31,7 +32,7 @@ export default function HomePage() {
     <div className="p-6 bg-gray-50 min-h-screen font-sans text-black">
       <div className="max-w-7xl mx-auto">
         
-        {/* HEADER SECTION - Identik dengan Admin */}
+        {/* HEADER SECTION */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
           <div>
             <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight uppercase">Produk Kami</h1>
@@ -49,10 +50,11 @@ export default function HomePage() {
             <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">Belum ada produk saat ini.</p>
           </div>
         ) : (
-          /* GRID SECTION - Gap 6 identik dengan Admin */
+          /* GRID SECTION */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              // PERBAIKAN DI SINI: Ganti 'product={product}' menjadi 'p={product}'
+              <ProductCard key={product.id} p={product} />
             ))}
           </div>
         )}
