@@ -4,12 +4,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 export default function ProductCard({ product: p }) {
-  // Samakan URL Storage dengan yang kita gunakan sebelumnya
+  // URL Storage yang disamakan dengan Admin
   const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col h-full">
-      {/* BAGIAN GAMBAR */}
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+      
+      {/* BAGIAN GAMBAR (Identik dengan Admin: Hover Zoom) */}
       <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
         <img 
           src={
@@ -20,40 +21,52 @@ export default function ProductCard({ product: p }) {
                 : "https://via.placeholder.com/400x300?text=No+Image"
           } 
           alt={p.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           onError={(e) => {
             e.target.onerror = null; 
             e.target.src = "https://via.placeholder.com/400x300?text=Image+Error";
           }}
         />
-        {/* Badge Stok */}
-        <div className="absolute top-3 right-3">
-          <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
-            p.stock > 0 ? 'bg-white/90 text-blue-600' : 'bg-red-100 text-red-600'
+        
+        {/* Badge Stok (Gaya Minimalis) */}
+        <div className="absolute top-4 right-4 z-10">
+          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm border ${
+            p.stock > 0 
+              ? 'bg-white/90 text-green-700 border-green-100' 
+              : 'bg-red-100 text-red-600 border-red-200'
           }`}>
             {p.stock > 0 ? `Stok: ${p.stock}` : 'Habis'}
           </span>
         </div>
       </div>
 
-      {/* KONTEN TEXT */}
+      {/* KONTEN TEXT (Identik dengan Admin) */}
       <div className="p-5 flex-grow flex flex-col">
-        <h3 className="text-lg font-bold text-gray-800 line-clamp-1 group-hover:text-blue-600 transition-colors uppercase tracking-tight">
+        <h3 className="font-bold text-gray-800 uppercase truncate group-hover:text-blue-600 transition-colors tracking-tight">
           {p.name}
         </h3>
-        <p className="text-blue-600 font-black text-xl mt-2">
-          Rp {Number(p.price).toLocaleString('id-ID')}
-        </p>
-        <p className="text-gray-400 text-sm mt-2 line-clamp-2 italic flex-grow">
+        
+        {/* Deskripsi (Fixed height & Line clamp 2 agar sejajar seperti Admin) */}
+        <p className="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed h-[32px]">
           {p.description || "Sentuhan estetika untuk koleksi harian Anda."}
         </p>
+
+        <div className="flex justify-between items-end mt-auto pt-4">
+          <p className="text-blue-600 font-black text-lg">
+            Rp {Number(p.price).toLocaleString('id-ID')}
+          </p>
+          {/* Tambahan info kategori kecil jika ada */}
+          <span className="text-[10px] font-bold uppercase text-gray-300">
+            {p.category || "General"}
+          </span>
+        </div>
       </div>
 
-      {/* ACTION BUTTON */}
+      {/* ACTION BUTTON (Statik / Muncul Terus seperti permintaanmu) */}
       <div className="p-4 bg-gray-50 border-t border-gray-100">
         <Link 
           href={`/products/${p.slug || p.id}`}
-          className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold text-sm hover:bg-blue-600 transition-all shadow-md flex items-center justify-center gap-2 active:scale-95"
+          className="w-full bg-gray-900 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-md flex items-center justify-center gap-2 active:scale-95"
         >
           Lihat Detail
         </Link>
