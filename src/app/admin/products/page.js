@@ -7,6 +7,8 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
 
+  const [selectedProductIds, setSelectedProductIds] = useState([]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   
@@ -84,6 +86,32 @@ export default function AdminProducts() {
       alert("Terjadi kesalahan saat menghapus.");
     }
   };
+
+  const handleBulkDelete = async () => {
+  if (!confirm(`Yakin ingin menghapus ${selectedProductIds.length} produk terpilih?`)) return;
+  
+  setLoading(true);
+  const token = localStorage.getItem("token");
+  
+  try {
+    // Kita jalankan semua request hapus secara bersamaan
+    const deletePromises = selectedProductIds.map(id => 
+      fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+    );
+
+    await Promise.all(deletePromises);
+    alert("Produk terpilih berhasil dihapus!");
+    setSelectedProductIds([]); // Reset pilihan
+    fetchProducts();
+  } catch (err) {
+    alert("Gagal menghapus beberapa produk.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleNameChange = (e) => {
     const name = e.target.value;
@@ -272,7 +300,33 @@ export default function AdminProducts() {
           </div>
         )}
 
-
+        <button 
+          onClick={() => {
+            if (selectedProductIds.length === products.length) {
+              setSelectedProductIds([]); // Uncheck all
+            } else {
+              setSelectedProductIds(products.map(p => p.id)); // Check all
+            }
+          }}
+          className="text-xs font-bold text-gray-500 hover:text-blue-600 transition-colors"
+        >
+          {selectedProductIds.length === products.length ? "Batal Pilih Semua" : "Pilih Semua"}
+        </button>
+        
+        {/* --- FITUR #3: BULK DELETE ACTION BAR --- */}
+        {selectedProductIds.length > 0 && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-2xl flex justify-between items-center animate-in fade-in slide-in-from-top-2">
+            <p className="text-red-700 font-bold">
+              {selectedProductIds.length} Produk terpilih
+            </p>
+            <button 
+              onClick={handleBulkDelete}
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl font-bold transition-all shadow-md active:scale-95"
+            >
+              🗑 Hapus Massal
+            </button>
+          </div>
+        )}
 
         {/* LOADING & CARD GRID */}
         {fetchLoading ? (
@@ -287,6 +341,23 @@ export default function AdminProducts() {
               products.map((p) => (
                 <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col">
                   {/* Gambar */}
+                  {/* --- CHECKBOX BULK DELETE --- */}
+                  <div className="absolute top-3 left-3 z-20">
+                    <input 
+                      type="checkbox" 
+                      className="w-5 h-5 rounded-lg border-2 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer shadow-md transition-all accent-blue-600"
+                      checked={selectedProductIds.includes(p.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedProductIds([...selectedProductIds, p.id]);
+                        } else {
+                          setSelectedProductIds(selectedProductIds.filter(id => id !== p.id));
+                        }
+                      }}
+                    />
+                  </div>
+          
+          
                   <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
                     <img 
                       src={
