@@ -12,7 +12,6 @@ export default function AdminProducts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   
-  // State untuk file asli dan preview
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [previewUrls, setPreviewUrls] = useState([]);
   
@@ -80,6 +79,8 @@ export default function AdminProducts() {
       });
       if (res.ok) {
         alert("Produk berhasil dihapus!");
+        // Hapus dari selection jika ada
+        setSelectedProductIds(prev => prev.filter(item => item !== id));
         fetchProducts();
       }
     } catch (err) {
@@ -88,30 +89,29 @@ export default function AdminProducts() {
   };
 
   const handleBulkDelete = async () => {
-  if (!confirm(`Yakin ingin menghapus ${selectedProductIds.length} produk terpilih?`)) return;
-  
-  setLoading(true);
-  const token = localStorage.getItem("token");
-  
-  try {
-    // Kita jalankan semua request hapus secara bersamaan
-    const deletePromises = selectedProductIds.map(id => 
-      fetch(`${API_URL}/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
-      })
-    );
+    if (!confirm(`Yakin ingin menghapus ${selectedProductIds.length} produk terpilih?`)) return;
+    
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    
+    try {
+      const deletePromises = selectedProductIds.map(id => 
+        fetch(`${API_URL}/${id}`, {
+          method: "DELETE",
+          headers: { "Authorization": `Bearer ${token}` }
+        })
+      );
 
-    await Promise.all(deletePromises);
-    alert("Produk terpilih berhasil dihapus!");
-    setSelectedProductIds([]); // Reset pilihan
-    fetchProducts();
-  } catch (err) {
-    alert("Gagal menghapus beberapa produk.");
-  } finally {
-    setLoading(false);
-  }
-};
+      await Promise.all(deletePromises);
+      alert("Produk terpilih berhasil dihapus!");
+      setSelectedProductIds([]);
+      fetchProducts();
+    } catch (err) {
+      alert("Gagal menghapus beberapa produk.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleNameChange = (e) => {
     const name = e.target.value;
@@ -185,7 +185,6 @@ export default function AdminProducts() {
     }
 
     const url = isEdit ? `${API_URL}/${editId}` : API_URL;
-    // Trik Laravel: Gunakan POST dengan _method PUT untuk update multipart/form-data
     if (isEdit) dataToSend.append("_method", "PUT");
 
     try {
@@ -238,10 +237,9 @@ export default function AdminProducts() {
           </button>
         </div>
 
-        {/* --- FITUR #1: DASHBOARD STATISTIK --- */}
+        {/* DASHBOARD STATISTIK */}
         {!fetchLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-            {/* Total Produk */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-blue-500 transition-all">
               <div>
                 <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Total Produk</p>
@@ -249,8 +247,6 @@ export default function AdminProducts() {
               </div>
               <div className="bg-blue-50 text-blue-600 p-3 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all text-2xl">📦</div>
             </div>
-        
-            {/* Stok Menipis */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-orange-500 transition-all">
               <div>
                 <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Stok Menipis (&lt;5)</p>
@@ -260,8 +256,6 @@ export default function AdminProducts() {
               </div>
               <div className="bg-orange-50 text-orange-600 p-3 rounded-xl group-hover:bg-orange-600 group-hover:text-white transition-all text-2xl">⚠️</div>
             </div>
-        
-            {/* Stok Habis */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-red-500 transition-all">
               <div>
                 <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Stok Habis</p>
@@ -274,7 +268,7 @@ export default function AdminProducts() {
           </div>
         )}
 
-        {/* --- FITUR #2: SEARCH & FILTER --- */}
+        {/* SEARCH & FILTER */}
         {!fetchLoading && (
           <div className="flex flex-col md:flex-row gap-4 mb-8">
             <div className="relative flex-grow">
@@ -293,31 +287,33 @@ export default function AdminProducts() {
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
               <option value="Semua">Semua Kategori</option>
-              {/* Jika kamu punya data kategori dari API, bisa di-map di sini */}
               <option value="Mainan">Mainan</option>
               <option value="Hobi">Hobi</option>
             </select>
           </div>
         )}
 
-        <button 
-          onClick={() => {
-            if (selectedProductIds.length === products.length) {
-              setSelectedProductIds([]); // Uncheck all
-            } else {
-              setSelectedProductIds(products.map(p => p.id)); // Check all
-            }
-          }}
-          className="text-xs font-bold text-gray-500 hover:text-blue-600 transition-colors"
-        >
-          {selectedProductIds.length === products.length ? "Batal Pilih Semua" : "Pilih Semua"}
-        </button>
+        {/* PILIH SEMUA ACTION */}
+        <div className="flex justify-between items-center mb-4 px-1">
+          <button 
+            onClick={() => {
+              if (selectedProductIds.length === products.length) {
+                setSelectedProductIds([]);
+              } else {
+                setSelectedProductIds(products.map(p => p.id));
+              }
+            }}
+            className="text-xs font-bold text-gray-500 hover:text-blue-600 transition-colors"
+          >
+            {selectedProductIds.length === products.length ? "✕ Batal Pilih Semua" : "✓ Pilih Semua Produk"}
+          </button>
+        </div>
         
-        {/* --- FITUR #3: BULK DELETE ACTION BAR --- */}
+        {/* BULK DELETE BAR */}
         {selectedProductIds.length > 0 && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-2xl flex justify-between items-center animate-in fade-in slide-in-from-top-2">
+          <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex justify-between items-center animate-in fade-in slide-in-from-top-2">
             <p className="text-red-700 font-bold">
-              {selectedProductIds.length} Produk terpilih
+              {selectedProductIds.length} Produk terpilih untuk dihapus
             </p>
             <button 
               onClick={handleBulkDelete}
@@ -328,7 +324,7 @@ export default function AdminProducts() {
           </div>
         )}
 
-        {/* LOADING & CARD GRID */}
+        {/* CARD GRID */}
         {fetchLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((n) => (
@@ -339,13 +335,13 @@ export default function AdminProducts() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.length > 0 ? (
               products.map((p) => (
-                <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col">
-                  {/* Gambar */}
-                  {/* CHECKBOX BULK DELETE - Sekarang menggunakan posisi yang lebih pas */}
+                <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col relative">
+                  
+                  {/* CHECKBOX - Posisi di luar kontainer gambar agar tidak terpotong */}
                   <div className="absolute top-4 left-4 z-30">
                     <input 
                       type="checkbox" 
-                      className="w-5 h-5 rounded-md border-2 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer shadow-sm transition-all accent-blue-600 w-6 h-6"
+                      className="w-6 h-6 rounded-md border-2 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer shadow-md transition-all accent-blue-600"
                       checked={selectedProductIds.includes(p.id)}
                       onChange={(e) => {
                         if (e.target.checked) {
@@ -356,8 +352,8 @@ export default function AdminProducts() {
                       }}
                     />
                   </div>
-                
-                  {/* Container Gambar */}
+
+                  {/* Kontainer Gambar */}
                   <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
                     <img 
                       src={
@@ -369,6 +365,10 @@ export default function AdminProducts() {
                       } 
                       alt={p.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      onError={(e) => {
+                        e.target.onerror = null; 
+                        e.target.src = "https://via.placeholder.com/400x300?text=Error+Loading";
+                      }}
                     />
                     
                     {/* Badge Stok */}
@@ -377,10 +377,9 @@ export default function AdminProducts() {
                         Stok: {p.stock}
                       </span>
                     </div>
-                  </div>                                              
-          
-        
-                  {/* Info */}
+                  </div>
+
+                  {/* Info Produk */}
                   <div className="p-5 flex-grow">
                     <h3 className="text-lg font-bold text-gray-800 line-clamp-1 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{p.name}</h3>
                     <p className="text-blue-600 font-black text-xl mt-1">Rp {Number(p.price).toLocaleString('id-ID')}</p>
@@ -415,9 +414,6 @@ export default function AdminProducts() {
           </div>
         )}
       </div>
-
-      
-
 
       {/* MODAL FORM */}
       {showModal && (
