@@ -89,7 +89,6 @@ export default function AdminProducts() {
   };
 
   const handleDeleteExistingImage = async (imageId) => {
-    if (!confirm("Hapus foto ini secara permanen?")) return;
     const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${IMAGE_API_URL}/${imageId}`, {
