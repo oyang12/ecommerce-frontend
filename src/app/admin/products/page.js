@@ -104,23 +104,26 @@ export default function AdminProducts() {
     }
   };
 
-  // 5. FUNGSI BARU: Hapus satu gambar tertentu (di DB)
   const handleDeleteExistingImage = async (imageId) => {
-    if (!confirm("Yakin mau hapus foto ini?")) return;
+    // 1. Baris confirm dihapus agar tidak muncul tanya-jawab lagi
     const token = localStorage.getItem("token");
     setLoading(true);
+  
     try {
       const res = await fetch(`${IMAGE_API_URL}/${imageId}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
-      //if (res.ok) {
-        // Hapus dari state agar hilang dari tampilan
-        //setExistingImages(existingImages.filter(img => img.id !== imageId));
-        //alert("Foto berhasil dihapus!");
-      //} else {
-        //alert("Gagal menghapus foto.");
-      //}
+  
+      if (res.ok) {
+        // 2. Langsung update state agar gambar hilang dari layar
+        setExistingImages(existingImages.filter(img => img.id !== imageId));
+        
+        // 3. Baris alert("Foto berhasil dihapus!") dihapus agar "senyap"
+      } else {
+        // Untuk error, sebaiknya tetap munculkan log di console agar kamu bisa debug jika gagal
+        console.error("Gagal menghapus foto dari server.");
+      }
     } catch (err) {
       console.error("Error hapus foto:", err);
     } finally {
