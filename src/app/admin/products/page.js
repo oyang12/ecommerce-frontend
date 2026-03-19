@@ -218,19 +218,28 @@ export default function AdminProducts() {
               products.map((p) => (
                 <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col">
                   {/* Bagian Gambar */}
-                  <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+                 <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
                     <img 
                       src={
-                        p.images && p.images.length > 0 
-                          ? p.images[0].url       
-                          : p.image               
-                            ? (p.image.startsWith('http') ? p.image : `${STORAGE_URL}${p.image}`) 
+                        // 1. Cek kolom thumbnail (prioritas utama sesuai permintaanmu)
+                        p.thumbnail 
+                          ? (p.thumbnail.startsWith('http') 
+                              ? p.thumbnail 
+                              : `https://ecommerce-backend-production-aa2e.up.railway.app/storage/${p.thumbnail}`)
+                          // 2. Fallback ke kolom image jika thumbnail kosong
+                          : p.image 
+                            ? (p.image.startsWith('http') 
+                                ? p.image 
+                                : `https://ecommerce-backend-production-aa2e.up.railway.app/storage/${p.image}`)
+                            // 3. Fallback terakhir ke placeholder
                             : "https://via.placeholder.com/400x300?text=No+Image"
                       } 
                       alt={p.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      // Tambahkan onError agar jika link rusak, gambar tidak pecah (tampil placeholder)
-                      onError={(e) => { e.target.src = "https://via.placeholder.com/400x300?text=Image+Error"; }}
+                      onError={(e) => {
+                        e.target.onerror = null; 
+                        e.target.src = "https://via.placeholder.com/400x300?text=Image+Not+Found";
+                      }}
                     />
                     <div className="absolute top-3 right-3">
                       <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-blue-600 shadow-sm">
