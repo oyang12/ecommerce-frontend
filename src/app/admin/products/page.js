@@ -88,20 +88,26 @@ export default function AdminProducts() {
     setSelectedFiles(selectedFiles.filter((_, index) => index !== indexToRemove));
   };
 
-  const handleDeleteExistingImage = async (imageId) => {
-    const token = localStorage.getItem("token");
-    try {
-      const res = await fetch(`${IMAGE_API_URL}/${imageId}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      if (res.ok) {
-        setExistingImages(existingImages.filter(img => img.id !== imageId));
-      }
-    } catch (err) {
-      alert("Gagal menghapus gambar");
-    }
+  const formattedExistingImages = (productDetail.images || []).map(img => {
+  let finalUrl = "";
+
+  if (img.image_path.startsWith('http')) {
+    // Jika sudah URL penuh dari cloud/S3
+    finalUrl = img.image_path;
+  } else {
+    // Bersihkan path jika ada double 'products/'
+    // STORAGE_URL anda adalah .../storage/products/
+    // Jika image_path adalah 'products/abc.jpg', kita hapus prefix 'products/' nya
+    const cleanPath = img.image_path.replace(/^products\//, "");
+    finalUrl = `${STORAGE_URL}${cleanPath}`;
+  }
+
+  return {
+    ...img,
+    url: finalUrl
   };
+});
+setExistingImages(formattedExistingImages);
 
   const handleDeleteProduct = async (id) => {
     if (!confirm("Yakin mau hapus produk ini?")) return;
