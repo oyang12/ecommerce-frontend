@@ -65,7 +65,7 @@ export default function ProductCard({ product: p }) {
       {/* ACTION BUTTON (Statik / Muncul Terus seperti permintaanmu) */}
       <div className="p-4 bg-gray-50 border-t border-gray-100">
         <Link 
-          href={`/products/${p.slug || p.id}`}
+          href={`/product/${p.slug || p.id}`}
           className="w-full bg-gray-900 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-md flex items-center justify-center gap-2 active:scale-95"
         >
           Lihat Detail
