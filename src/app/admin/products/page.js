@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
@@ -8,12 +8,15 @@ export default function AdminProducts() {
   
   // State untuk file asli (yang akan dikirim ke server)
   const [selectedFiles, setSelectedFiles] = useState([]);
-  // STATE BARU: Untuk menyimpan URL pratinjau foto baru
+  // State untuk menyimpan URL pratinjau foto baru
   const [previewUrls, setPreviewUrls] = useState([]);
   
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const [existingImages, setExistingImages] = useState([]);
+
+  // Ref untuk mengontrol input file secara manual agar tulisan "X files" hilang
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -43,24 +46,25 @@ export default function AdminProducts() {
     fetchProducts();
   }, []);
 
-  // FUNGSI BARU: Handle saat pilih file (Tambah Preview)
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    
-    // Gabungkan file baru dengan yang sudah dipilih sebelumnya (jika ada)
+    if (files.length === 0) return;
+
+    // Tambahkan file baru ke daftar yang sudah ada
     const updatedFiles = [...selectedFiles, ...files];
     setSelectedFiles(updatedFiles);
 
-    // Buat URL preview untuk file-file baru tersebut
+    // Buat URL preview
     const newPreviewUrls = files.map((file) => URL.createObjectURL(file));
     setPreviewUrls([...previewUrls, ...newPreviewUrls]);
+
+    // PENTING: Reset value input file ke null agar tulisan "X files" di sistem hilang
+    // dan user bisa memilih file yang sama lagi jika tadi sempat dihapus.
+    e.target.value = null;
   };
 
-  // FUNGSI BARU: Hapus preview foto yang belum diupload
   const handleRemovePreview = (indexToRemove) => {
-    // Hapus URL preview agar memori tidak bocor
     URL.revokeObjectURL(previewUrls[indexToRemove]);
-    
     setPreviewUrls(previewUrls.filter((_, index) => index !== indexToRemove));
     setSelectedFiles(selectedFiles.filter((_, index) => index !== indexToRemove));
   };
@@ -185,7 +189,6 @@ export default function AdminProducts() {
     setEditId(null);
     setFormData({ name: "", slug: "", price: "", stock: "", description: "" });
     setSelectedFiles([]);
-    // Bersihkan URL preview agar memori bersih
     previewUrls.forEach(url => URL.revokeObjectURL(url));
     setPreviewUrls([]);
     setExistingImages([]);
@@ -278,45 +281,68 @@ export default function AdminProducts() {
                   value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})}></textarea>
               </div>
 
-              {/* TAMPILAN FOTO LAMA (KHUSUS EDIT) */}
+              {/* FOTO YANG SUDAH ADA DI DATABASE (MODE EDIT) */}
               {isEdit && existingImages.length > 0 && (
                 <div className="border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Foto Saat Ini (Database)</label>
+                  <label className="block text-sm font-semibold mb-2 text-gray-700 font-mono">Foto Saat Ini (Database)</label>
                   <div className="grid grid-cols-4 gap-2">
                     {existingImages.map((img) => (
-                      <div key={img.id} className="relative group aspect-square border-2 border-white rounded-lg shadow">
-                        <img src={img.url} className="w-full h-full object-cover rounded-lg" />
-                        <button type="button" onClick={() => handleDeleteExistingImage(img.id)} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                      <div key={img.id} className="relative aspect-square border-2 border-white rounded-lg shadow-sm overflow-hidden">
+                        <img src={img.url} className="w-full h-full object-cover" />
+                        <button type="button" onClick={() => handleDeleteExistingImage(img.id)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-md hover:bg-red-700 transition-colors">✕</button>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* TAMPILAN PRATINJAU FOTO BARU (TAMBAH & EDIT) */}
+              {/* PRATINJAU FOTO BARU YANG AKAN DIUPLOAD */}
               {previewUrls.length > 0 && (
                 <div className="border border-dashed border-blue-200 rounded-lg p-4 bg-blue-50">
-                  <label className="block text-sm font-semibold mb-2 text-blue-700">Pratinjau Foto Baru</label>
+                  <label className="block text-sm font-semibold mb-2 text-blue-700 font-mono">Pratinjau Foto Baru</label>
                   <div className="grid grid-cols-4 gap-2">
                     {previewUrls.map((url, index) => (
-                      <div key={index} className="relative group aspect-square border-2 border-white rounded-lg shadow">
-                        <img src={url} className="w-full h-full object-cover rounded-lg" />
-                        <button type="button" onClick={() => handleRemovePreview(index)} className="absolute -top-2 -right-2 bg-gray-800 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">✕</button>
+                      <div key={index} className="relative aspect-square border-2 border-white rounded-lg shadow-sm overflow-hidden">
+                        <img src={url} className="w-full h-full object-cover" />
+                        <button type="button" onClick={() => handleRemovePreview(index)} className="absolute top-1 right-1 bg-gray-800 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-md hover:bg-black transition-colors">✕</button>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-semibold mb-1 text-blue-600">Pilih Foto Produk</label>
-                <input type="file" multiple accept="image/*" className="w-full border p-1 rounded-lg text-sm bg-white cursor-pointer"
-                  onChange={handleFileChange} />
+              {/* TOMBOL PILIH FOTO (KUSTOM) */}
+              <div className="mt-4">
+                <label className="block text-sm font-semibold mb-2 text-blue-600">
+                  {isEdit ? "Tambah Foto Baru (Pilih untuk menambah)" : "Upload Foto Produk"}
+                </label>
+                
+                {/* Input file asli (DISEMBUNYIKAN) */}
+                <input 
+                  type="file" 
+                  multiple 
+                  accept="image/*" 
+                  ref={fileInputRef}
+                  className="hidden" 
+                  onChange={handleFileChange} 
+                />
+
+                {/* Tombol Pengganti yang terlihat oleh User */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current.click()}
+                  className="w-full border-2 border-dashed border-blue-300 p-6 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 hover:border-blue-400 transition-all flex flex-col items-center justify-center gap-1 group shadow-sm"
+                >
+                  <span className="text-2xl font-bold group-hover:scale-125 transition-transform">+</span>
+                  <span className="font-semibold text-sm">Pilih File Foto</span>
+                  <p className="text-[10px] text-gray-400 italic">*Bisa pilih banyak foto sekaligus</p>
+                </button>
               </div>
 
               <div className="flex justify-end gap-3 mt-8 border-t pt-4">
-                <button type="button" onClick={closeModal} className="px-4 py-2 text-gray-500 hover:text-gray-700">Batal</button>
+                <button type="button" onClick={closeModal} className="px-4 py-2 text-gray-500 hover:text-gray-700 font-medium">Batal</button>
                 <button type="submit" disabled={loading} className="bg-blue-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400 transition shadow-lg flex items-center gap-2">
+                  {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>}
                   {loading ? "Proses..." : isEdit ? "Update Produk" : "Simpan Produk"}
                 </button>
               </div>
