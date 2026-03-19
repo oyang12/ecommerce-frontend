@@ -1,21 +1,22 @@
 'use client';
 
+import Link from 'next/link'; // Import Link untuk navigasi
+
 export default function ProductCard({ p }) {
-  // Gunakan URL yang sama dengan halaman admin agar gambar muncul
   const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
   const FALLBACK_IMG = "https://via.placeholder.com/400x300?text=No+Image";
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300">
       
-      {/* Badge Status (Hanya muncul jika bukan Active) */}
+      {/* Badge Status */}
       {p.status !== "Active" && (
         <div className="absolute top-4 right-4 z-30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm bg-gray-100 text-gray-500 border border-gray-200">
           {p.status}
         </div>
       )}
 
-      {/* Thumbnail Image - Style Admin */}
+      {/* Thumbnail Image */}
       <div className="aspect-[4/3] overflow-hidden bg-gray-100">
         <img 
           src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : FALLBACK_IMG} 
@@ -25,11 +26,10 @@ export default function ProductCard({ p }) {
         />
       </div>
 
-      {/* Content - Style Admin */}
+      {/* Content */}
       <div className="p-5 pb-0">
         <h3 className="font-bold text-gray-800 uppercase truncate">{p.name}</h3>
         
-        {/* Deskripsi - Style Admin */}
         <p className="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed h-[32px]">
           {p.description || "Tidak ada deskripsi produk."}
         </p>
@@ -44,11 +44,16 @@ export default function ProductCard({ p }) {
         </div>
       </div>
 
-      {/* Buttons Action - Disesuaikan untuk Pembeli dengan Style Admin */}
+      {/* Action Buttons dengan Navigasi */}
       <div className="p-4 bg-gray-50 border-t flex gap-2 mt-4">
-        <button className="flex-1 bg-white border border-gray-200 py-2 rounded-xl font-bold text-xs hover:bg-gray-900 hover:text-white transition-all uppercase tracking-widest">
+        {/* TOMBOL DETAIL: Sekarang menggunakan Link ke slug produk */}
+        <Link 
+          href={`/product/${p.slug}`} 
+          className="flex-1 bg-white border border-gray-200 py-2 rounded-xl font-bold text-xs hover:bg-gray-900 hover:text-white transition-all uppercase tracking-widest text-center"
+        >
           Detail
-        </button>
+        </Link>
+        
         <button className="flex-1 bg-gray-900 text-white py-2 rounded-xl font-bold text-xs hover:bg-blue-600 transition-all uppercase tracking-widest active:scale-95">
           Beli
         </button>
