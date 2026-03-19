@@ -3,6 +3,21 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 
+// 1. FUNGSI UNTUK VERCEL (Tambahkan ini agar rute terdaftar)
+export async function generateStaticParams() {
+  try {
+    const res = await fetch('https://ecommerce-backend-production-aa2e.up.railway.app/api/products');
+    const result = await res.json();
+    const products = result.data || [];
+
+    return products.map((product) => ({
+      slug: product.slug,
+    }));
+  } catch (error) {
+    return [];
+  }
+}
+
 export default function ProductDetailPage() {
   const { slug } = useParams();
   const [product, setProduct] = useState(null);
@@ -17,15 +32,17 @@ export default function ProductDetailPage() {
       try {
         const res = await fetch(API_URL);
         const result = await res.json();
-        setProduct(result.data);
-        setActiveImage(result.data.thumbnail);
-        setLoading(false);
+        if (result.data) {
+          setProduct(result.data);
+          setActiveImage(result.data.thumbnail);
+        }
       } catch (err) {
         console.error("Gagal memuat detail produk:", err);
+      } finally {
         setLoading(false);
       }
     };
-    fetchDetail();
+    if (slug) fetchDetail();
   }, [slug]);
 
   if (loading) return (
@@ -36,11 +53,13 @@ export default function ProductDetailPage() {
 
   if (!product) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <p className="font-bold uppercase tracking-widest text-gray-400">Produk tidak ditemukan.</p>
+      <div className="text-center">
+        <p className="font-black uppercase tracking-widest text-gray-400">Produk tidak ditemukan</p>
+        <button onClick={() => window.history.back()} className="mt-4 text-xs font-bold text-blue-600 uppercase underline">Kembali</button>
+      </div>
     </div>
   );
 
-  // Fungsi WhatsApp (Contoh)
   const handleOrder = () => {
     const message = `Halo Admin, saya tertarik dengan produk *${product.name}* (Harga: Rp ${Number(product.price).toLocaleString('id-ID')}). Apakah stok masih tersedia?`;
     window.open(`https://wa.me/628123456789?text=${encodeURIComponent(message)}`, '_blank');
@@ -50,7 +69,6 @@ export default function ProductDetailPage() {
     <div className="min-h-screen bg-gray-50 p-6 font-sans text-black">
       <div className="max-w-6xl mx-auto">
         
-        {/* BREADCRUMB / BACK BUTTON */}
         <button 
           onClick={() => window.history.back()}
           className="mb-8 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
@@ -60,17 +78,16 @@ export default function ProductDetailPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           
-          {/* BAGIAN KIRI: GALLERY GAMBAR */}
+          {/* GALLERY */}
           <div className="space-y-4">
             <div className="aspect-square bg-white rounded-3xl overflow-hidden border border-gray-200 shadow-sm">
               <img 
                 src={`${STORAGE_URL}${activeImage}`} 
                 alt={product.name} 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-all duration-500"
               />
             </div>
             
-            {/* Thumbnail Gallery (Jika ada lebih dari 1 gambar) */}
             {product.images && product.images.length > 0 && (
               <div className="grid grid-cols-4 gap-4">
                 {product.images.map((img, idx) => (
@@ -78,7 +95,7 @@ export default function ProductDetailPage() {
                     key={idx}
                     onClick={() => setActiveImage(img.image_path || img.thumbnail)}
                     className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${
-                      activeImage === (img.image_path || img.thumbnail) ? 'border-blue-600 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'
+                      activeImage === (img.image_path || img.thumbnail) ? 'border-gray-900 shadow-md scale-95' : 'border-transparent opacity-60'
                     }`}
                   >
                     <img src={`${STORAGE_URL}${img.image_path || img.thumbnail}`} className="w-full h-full object-cover" />
@@ -88,7 +105,7 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* BAGIAN KANAN: INFO PRODUK */}
+          {/* INFO */}
           <div className="flex flex-col justify-center">
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-2">
               {product.category || "Original Collection"}
@@ -112,7 +129,7 @@ export default function ProductDetailPage() {
               <div>
                 <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Deskripsi Produk</h3>
                 <p className="text-gray-600 leading-relaxed italic text-sm md:text-base">
-                  {product.description || "Produk ini belum memiliki deskripsi detail. Silakan hubungi admin untuk informasi lebih lanjut mengenai material dan ukuran."}
+                  {product.description || "Produk ini belum memiliki deskripsi detail."}
                 </p>
               </div>
 
@@ -124,15 +141,8 @@ export default function ProductDetailPage() {
                 >
                   Pesan Sekarang (WA)
                 </button>
-                <button className="px-8 py-4 border-2 border-gray-200 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-gray-100 transition-all active:scale-95">
-                  Simpan Wishlist
-                </button>
               </div>
             </div>
-
-            <p className="mt-8 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-              Garansi Kualitas Original • Pengiriman Seluruh Indonesia
-            </p>
           </div>
 
         </div>
