@@ -156,10 +156,8 @@ export default function AdminProducts() {
       const res = await fetch(`${API_URL}/${p.slug}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
-      
       const result = await res.json();
       const productDetail = result.data;
-      
       if (productDetail) {
         setFormData({
           name: productDetail.name,
@@ -170,21 +168,24 @@ export default function AdminProducts() {
           status: productDetail.status || "Active",
         });
         setEditId(productDetail.id);
-        
-        // Memastikan URL gambar lengkap agar muncul di modal
-        const formattedImages = (productDetail.images || []).map(img => ({
-          ...img,
-          url: img.image_path.startsWith('http') 
-               ? img.image_path 
-               : `${STORAGE_URL}${img.image_path}`
+
+        // --- PERBAIKAN DI SINI ---
+        // Kita harus memastikan URL gambar-gambar tambahan menggunakan STORAGE_URL lengkap
+        const formattedExistingImages = (productDetail.images || []).map(img => ({
+            ...img,
+            // Jika backend memberikan 'image_path', gabungkan dengan STORAGE_URL
+            // Jika backend sudah memberikan 'url' lengkap, gunakan itu
+            url: img.url || `${STORAGE_URL}${img.image_path}`
         }));
-        
-        setExistingImages(formattedImages);
+        setExistingImages(formattedExistingImages);
+        // --------------------------
+
         setIsEdit(true);
         setShowModal(true);
       }
     } catch (err) {
       console.error("Gagal ambil detail produk:", err);
+      alert("Gagal mengambil data produk.");
     } finally {
       setLoading(false);
     }
