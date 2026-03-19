@@ -368,4 +368,3 @@ export default function AdminProducts() {
     </div>
   );
 }
-coba periksa dong apa sudah benar aku masukan kode untuk img nya 
