@@ -107,62 +107,50 @@ export default function AdminProducts() {
   };
 
   const handleEditClick = async (p) => {
-    // 1. Cek apakah data produk p ada
-    if (!p) return;
-    
-    console.log("Membuka edit untuk:", p); // Debugging: Cek di console browser (F12)
-    setLoading(true);
-    
-    const token = localStorage.getItem("token");
-    
-    // Gunakan slug jika ada, kalau tidak ada pakai ID
-    const identifier = p.slug || p.id; 
+  if (!p) return;
+  setLoading(true);
+  const token = localStorage.getItem("token");
 
-    try {
-      const res = await fetch(`${API_URL}/${identifier}`, {
-        headers: { "Authorization": `Bearer ${token}` }
+  try {
+    const res = await fetch(`${API_URL}/${p.slug}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const result = await res.json();
+    const data = result.data;
+
+    if (data) {
+      setFormData({
+        name: data.name,
+        slug: data.slug,
+        price: data.price,
+        stock: data.stock,
+        description: data.description || "",
+        status: data.status || "Active",
+      });
+      setEditId(data.id);
+
+      // LOGIKA YANG DISESUAIKAN DENGAN DATABASE (image_e3ab82.png)
+      const formattedImages = (data.images || []).map(img => {
+        // Ambil nama file langsung dari kolom 'image' sesuai screenshot MySQL
+        const fileName = img.image || ""; 
+        
+        return {
+          ...img,
+          // Gabungkan langsung dengan STORAGE_URL tanpa manipulasi teks yang aneh-aneh
+          url: `${STORAGE_URL}${fileName}` 
+        };
       });
 
-      if (!res.ok) throw new Error("Gagal mengambil data dari server");
-
-      const result = await res.json();
-      const data = result.data;
-
-      if (data) {
-        setFormData({
-          name: data.name || "",
-          slug: data.slug || "",
-          price: data.price || "",
-          stock: data.stock || 0,
-          description: data.description || "",
-          status: data.status || "Active",
-        });
-        setEditId(data.id);
-
-        // Perbaikan Path Gambar agar tidak crash jika image_path kosong
-        const formattedImages = (data.images || []).map(img => {
-          // Cek apakah image_path ada, jika tidak ada gunakan string kosong
-          const path = img.image_path || ""; 
-          const cleanPath = path.replace(/^products\//, "");
-          
-          return {
-            ...img,
-            // Gunakan thumbnail_url dari API jika ada sebagai fallback
-            url: path ? `${STORAGE_URL}${cleanPath}` : (img.url || "https://via.placeholder.com/150")
-          };
-        });
-        
-        setExistingImages(formattedImages);
-        setIsEdit(true);
-        setShowModal(true); // Pastikan ini terpanggil di akhir
-      }
-    } catch (err) {
-      console.error("Gagal ambil detail produk:", err);
-      alert("Gagal memuat detail produk. Pastikan API mengembalikan data yang benar.");
-    } finally {
-      setLoading(false);
+      setExistingImages(formattedImages);
+      setIsEdit(true);
+      setShowModal(true);
     }
-  };
+  } catch (err) {
+    console.error("Gagal ambil detail:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   
   const handleDeleteExistingImage = async (imageId) => {
