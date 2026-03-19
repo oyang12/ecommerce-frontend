@@ -163,40 +163,43 @@ setExistingImages(formattedExistingImages);
         headers: { "Authorization": `Bearer ${token}` }
       });
       const result = await res.json();
-      const productDetail = result.data;
-      if (productDetail) {
+      
+      // Gunakan data dari result.data secara langsung atau simpan ke konstanta
+      const data = result.data; 
+
+      if (data) {
         setFormData({
-          name: productDetail.name,
-          slug: productDetail.slug,
-          price: productDetail.price,
-          stock: productDetail.stock,
-          description: productDetail.description || "",
-          status: productDetail.status || "Active",
+          name: data.name,
+          slug: data.slug,
+          price: data.price,
+          stock: data.stock,
+          description: data.description || "",
+          status: data.status || "Active",
         });
-        setEditId(productDetail.id);
+        setEditId(data.id);
 
-        // --- PERBAIKAN DI SINI ---
-        // Kita harus memastikan URL gambar-gambar tambahan menggunakan STORAGE_URL lengkap
-        const formattedExistingImages = (productDetail.images || []).map(img => ({
+        // Perbaikan Path Gambar agar tidak pecah
+        const formattedImages = (data.images || []).map(img => {
+          // Bersihkan path jika ada double 'products/' dari database
+          const cleanPath = img.image_path.replace(/^products\//, "");
+          return {
             ...img,
-            // Jika backend memberikan 'image_path', gabungkan dengan STORAGE_URL
-            // Jika backend sudah memberikan 'url' lengkap, gunakan itu
-            url: img.url || `${STORAGE_URL}${img.image_path}`
-        }));
-        setExistingImages(formattedExistingImages);
-        // --------------------------
-
+            url: `${STORAGE_URL}${cleanPath}`
+          };
+        });
+        
+        setExistingImages(formattedImages);
         setIsEdit(true);
         setShowModal(true);
       }
     } catch (err) {
       console.error("Gagal ambil detail produk:", err);
-      alert("Gagal mengambil data produk.");
     } finally {
       setLoading(false);
     }
   };
 
+  
   const handleSaveProduct = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -401,12 +404,27 @@ setExistingImages(formattedExistingImages);
               <textarea placeholder="Deskripsi" className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400" rows="3" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})}></textarea>
               
               <div className="border-t pt-4">
+                {/* Bagian Foto Existing di Modal */}
                 {isEdit && existingImages.length > 0 && (
                   <div className="grid grid-cols-4 gap-2 mb-4">
                     {existingImages.map((img) => (
-                      <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border">
-                        <img src={img.url} className="w-full h-full object-cover" alt="existing" />
-                        <button type="button" onClick={() => handleDeleteExistingImage(img.id)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-[10px]">✕</button>
+                      <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border bg-gray-50">
+                        <img 
+                          src={img.url} 
+                          className="w-full h-full object-cover" 
+                          alt="Produk"
+                          onError={(e) => {
+                            // Fallback jika URL masih salah
+                            e.target.src = "https://via.placeholder.com/150?text=No+Image";
+                          }}
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => handleDeleteExistingImage(img.id)} 
+                          className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-700 transition-colors"
+                        >
+                          ✕
+                        </button>
                       </div>
                     ))}
                   </div>
