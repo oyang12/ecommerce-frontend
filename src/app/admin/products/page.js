@@ -114,13 +114,13 @@ export default function AdminProducts() {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
-      if (res.ok) {
+      //if (res.ok) {
         // Hapus dari state agar hilang dari tampilan
-        setExistingImages(existingImages.filter(img => img.id !== imageId));
-        alert("Foto berhasil dihapus!");
-      } else {
-        alert("Gagal menghapus foto.");
-      }
+        //setExistingImages(existingImages.filter(img => img.id !== imageId));
+        //alert("Foto berhasil dihapus!");
+      //} else {
+        //alert("Gagal menghapus foto.");
+      //}
     } catch (err) {
       console.error("Error hapus foto:", err);
     } finally {
