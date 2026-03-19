@@ -221,24 +221,21 @@ export default function AdminProducts() {
                  <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
                     <img 
                       src={
-                        // 1. Cek kolom thumbnail (prioritas utama sesuai permintaanmu)
                         p.thumbnail 
-                          ? (p.thumbnail.startsWith('http') 
+                          ? (p.thumbnail.startsWith('data:image') 
                               ? p.thumbnail 
-                              : `https://ecommerce-backend-production-aa2e.up.railway.app/storage/${p.thumbnail}`)
-                          // 2. Fallback ke kolom image jika thumbnail kosong
+                              : `data:image/jpeg;base64,${p.thumbnail}`)
                           : p.image 
-                            ? (p.image.startsWith('http') 
+                            ? (p.image.startsWith('data:image') 
                                 ? p.image 
-                                : `https://ecommerce-backend-production-aa2e.up.railway.app/storage/${p.image}`)
-                            // 3. Fallback terakhir ke placeholder
+                                : `data:image/jpeg;base64,${p.image}`)
                             : "https://via.placeholder.com/400x300?text=No+Image"
                       } 
                       alt={p.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={(e) => {
                         e.target.onerror = null; 
-                        e.target.src = "https://via.placeholder.com/400x300?text=Image+Not+Found";
+                        e.target.src = "https://via.placeholder.com/400x300?text=Format+Error";
                       }}
                     />
                     <div className="absolute top-3 right-3">
