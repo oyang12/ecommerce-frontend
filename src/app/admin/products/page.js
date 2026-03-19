@@ -1,10 +1,5 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
-import { useParams } from 'next/navigation';
-
-export default function ProductDetailPage() {
-  const params = useParams(); // Ini baru boleh dipakai di sini
-  const slug = params?.slug;
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
