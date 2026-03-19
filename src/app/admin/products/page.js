@@ -6,6 +6,7 @@ export default function AdminProducts() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [previewUrls, setPreviewUrls] = useState([]);
   
   // State untuk Edit
   const [isEdit, setIsEdit] = useState(false);
