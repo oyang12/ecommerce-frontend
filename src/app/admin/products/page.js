@@ -6,15 +6,12 @@ export default function AdminProducts() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
-
   const [selectedProductIds, setSelectedProductIds] = useState([]);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [previewUrls, setPreviewUrls] = useState([]);
-  
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const [existingImages, setExistingImages] = useState([]);
@@ -27,6 +24,7 @@ export default function AdminProducts() {
     price: "",
     stock: "",
     description: "",
+    status: "Active", // Default status
   });
 
   const API_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/api/products";
@@ -52,6 +50,32 @@ export default function AdminProducts() {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  // FITUR 4: Fungsi Toggle Status Cepat
+  const toggleStatus = async (product) => {
+    const newStatus = product.status === "Active" ? "Draft" : "Active";
+    const token = localStorage.getItem("token");
+    
+    try {
+      const res = await fetch(`${API_URL}/${product.id}`, {
+        method: "POST",
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          _method: "PUT",
+          status: newStatus
+        })
+      });
+
+      if (res.ok) {
+        setProducts(products.map(p => p.id === product.id ? { ...p, status: newStatus } : p));
+      }
+    } catch (err) {
+      alert("Gagal memperbarui status");
+    }
+  };
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
@@ -79,7 +103,6 @@ export default function AdminProducts() {
       });
       if (res.ok) {
         alert("Produk berhasil dihapus!");
-        // Hapus dari selection jika ada
         setSelectedProductIds(prev => prev.filter(item => item !== id));
         fetchProducts();
       }
@@ -90,10 +113,8 @@ export default function AdminProducts() {
 
   const handleBulkDelete = async () => {
     if (!confirm(`Yakin ingin menghapus ${selectedProductIds.length} produk terpilih?`)) return;
-    
     setLoading(true);
     const token = localStorage.getItem("token");
-    
     try {
       const deletePromises = selectedProductIds.map(id => 
         fetch(`${API_URL}/${id}`, {
@@ -101,7 +122,6 @@ export default function AdminProducts() {
           headers: { "Authorization": `Bearer ${token}` }
         })
       );
-
       await Promise.all(deletePromises);
       alert("Produk terpilih berhasil dihapus!");
       setSelectedProductIds([]);
@@ -128,7 +148,6 @@ export default function AdminProducts() {
       });
       const result = await res.json();
       const productDetail = result.data;
-
       if (productDetail) {
         setFormData({
           name: productDetail.name,
@@ -136,6 +155,7 @@ export default function AdminProducts() {
           price: productDetail.price,
           stock: productDetail.stock,
           description: productDetail.description || "",
+          status: productDetail.status || "Active",
         });
         setEditId(productDetail.id);
         setExistingImages(productDetail.images || []);
@@ -144,24 +164,6 @@ export default function AdminProducts() {
       }
     } catch (err) {
       console.error("Gagal ambil detail produk:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteExistingImage = async (imageId) => {
-    const token = localStorage.getItem("token");
-    setLoading(true);
-    try {
-      const res = await fetch(`${IMAGE_API_URL}/${imageId}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      if (res.ok) {
-        setExistingImages(existingImages.filter(img => img.id !== imageId));
-      }
-    } catch (err) {
-      console.error("Error hapus foto:", err);
     } finally {
       setLoading(false);
     }
@@ -177,6 +179,7 @@ export default function AdminProducts() {
     dataToSend.append("price", formData.price);
     dataToSend.append("stock", formData.stock);
     dataToSend.append("description", formData.description);
+    dataToSend.append("status", formData.status);
 
     if (selectedFiles.length > 0) {
       selectedFiles.forEach((file) => {
@@ -212,12 +215,19 @@ export default function AdminProducts() {
     setShowModal(false);
     setIsEdit(false);
     setEditId(null);
-    setFormData({ name: "", slug: "", price: "", stock: "", description: "" });
+    setFormData({ name: "", slug: "", price: "", stock: "", description: "", status: "Active" });
     setSelectedFiles([]);
     previewUrls.forEach(url => URL.revokeObjectURL(url));
     setPreviewUrls([]);
     setExistingImages([]);
   };
+
+  // Filter Logika
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "Semua" || p.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen font-sans text-black">
@@ -227,7 +237,7 @@ export default function AdminProducts() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight uppercase">Manajemen Produk</h1>
-            <p className="text-gray-500 mt-1 italic">Update stok dan produk toko dengan mudah.</p>
+            <p className="text-gray-500 mt-1 italic">Update stok dan status produk toko Anda.</p>
           </div>
           <button 
             onClick={() => { closeModal(); setShowModal(true); }}
@@ -237,262 +247,132 @@ export default function AdminProducts() {
           </button>
         </div>
 
-        {/* DASHBOARD STATISTIK */}
+        {/* 1. STATISTIK */}
         {!fetchLoading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-blue-500 transition-all">
-              <div>
-                <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Total Produk</p>
-                <h2 className="text-3xl font-black text-gray-900 mt-1">{products.length}</h2>
-              </div>
-              <div className="bg-blue-50 text-blue-600 p-3 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all text-2xl">📦</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Total Produk</p>
+              <h2 className="text-3xl font-black text-gray-900 mt-1">{products.length}</h2>
             </div>
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-orange-500 transition-all">
-              <div>
-                <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Stok Menipis (&lt;5)</p>
-                <h2 className="text-3xl font-black text-orange-600 mt-1">
-                  {products.filter(p => p.stock > 0 && p.stock < 5).length}
-                </h2>
-              </div>
-              <div className="bg-orange-50 text-orange-600 p-3 rounded-xl group-hover:bg-orange-600 group-hover:text-white transition-all text-2xl">⚠️</div>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Stok Menipis</p>
+              <h2 className="text-3xl font-black text-orange-600 mt-1">{products.filter(p => p.stock > 0 && p.stock < 5).length}</h2>
             </div>
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:border-red-500 transition-all">
-              <div>
-                <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Stok Habis</p>
-                <h2 className="text-3xl font-black text-red-600 mt-1">
-                  {products.filter(p => p.stock <= 0).length}
-                </h2>
-              </div>
-              <div className="bg-red-50 text-red-600 p-3 rounded-xl group-hover:bg-red-600 group-hover:text-white transition-all text-2xl">🚫</div>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Stok Habis</p>
+              <h2 className="text-3xl font-black text-red-600 mt-1">{products.filter(p => p.stock <= 0).length}</h2>
+            </div>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Draft / Hidden</p>
+              <h2 className="text-3xl font-black text-gray-400 mt-1">{products.filter(p => p.status === "Draft").length}</h2>
             </div>
           </div>
         )}
 
-        {/* SEARCH & FILTER */}
-        {!fetchLoading && (
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <div className="relative flex-grow">
-              <span className="absolute left-4 top-3.5 text-gray-400">🔍</span>
-              <input 
-                type="text" 
-                placeholder="Cari nama produk..." 
-                className="w-full pl-12 pr-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-400 outline-none transition-all shadow-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <select 
-              className="px-6 py-3 rounded-2xl border border-gray-200 bg-white font-bold text-gray-700 focus:ring-2 focus:ring-blue-400 outline-none shadow-sm cursor-pointer"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              <option value="Semua">Semua Kategori</option>
-              <option value="Mainan">Mainan</option>
-              <option value="Hobi">Hobi</option>
-            </select>
+        {/* 2. CATEGORY & SEARCH */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-grow">
+            <input 
+              type="text" placeholder="Cari nama produk..." 
+              className="w-full pl-5 pr-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-400 outline-none"
+              value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-        )}
-
-        {/* PILIH SEMUA ACTION */}
-        <div className="flex justify-between items-center mb-4 px-1">
-          <button 
-            onClick={() => {
-              if (selectedProductIds.length === products.length) {
-                setSelectedProductIds([]);
-              } else {
-                setSelectedProductIds(products.map(p => p.id));
-              }
-            }}
-            className="text-xs font-bold text-gray-500 hover:text-blue-600 transition-colors"
+          <select 
+            className="px-6 py-3 rounded-2xl border border-gray-200 bg-white font-bold cursor-pointer"
+            value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}
           >
-            {selectedProductIds.length === products.length ? "✕ Batal Pilih Semua" : "✓ Pilih Semua Produk"}
-          </button>
+            <option value="Semua">Semua Kategori</option>
+            <option value="Mainan">Mainan</option>
+            <option value="Hobi">Hobi</option>
+          </select>
         </div>
-        
-        {/* BULK DELETE BAR */}
-        {selectedProductIds.length > 0 && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex justify-between items-center animate-in fade-in slide-in-from-top-2">
-            <p className="text-red-700 font-bold">
-              {selectedProductIds.length} Produk terpilih untuk dihapus
-            </p>
-            <button 
-              onClick={handleBulkDelete}
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl font-bold transition-all shadow-md active:scale-95"
-            >
-              🗑 Hapus Massal
+
+        {/* 3. BULK DELETE & SELECT ALL */}
+        <div className="flex justify-between items-center mb-4">
+          <button 
+            onClick={() => selectedProductIds.length === filteredProducts.length ? setSelectedProductIds([]) : setSelectedProductIds(filteredProducts.map(p => p.id))}
+            className="text-xs font-bold text-gray-500 hover:text-blue-600"
+          >
+            {selectedProductIds.length === filteredProducts.length ? "✕ Batal Pilih" : "✓ Pilih Semua"}
+          </button>
+          
+          {selectedProductIds.length > 0 && (
+            <button onClick={handleBulkDelete} className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-xs">
+              Hapus ({selectedProductIds.length})
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* CARD GRID */}
-        {fetchLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="bg-white rounded-2xl h-96 animate-pulse border border-gray-100"></div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.length > 0 ? (
-              products.map((p) => (
-                <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col relative">
-                  
-                  {/* CHECKBOX - Posisi di luar kontainer gambar agar tidak terpotong */}
-                  <div className="absolute top-4 left-4 z-30">
-                    <input 
-                      type="checkbox" 
-                      className="w-6 h-6 rounded-md border-2 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer shadow-md transition-all accent-blue-600"
-                      checked={selectedProductIds.includes(p.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedProductIds([...selectedProductIds, p.id]);
-                        } else {
-                          setSelectedProductIds(selectedProductIds.filter(id => id !== p.id));
-                        }
-                      }}
-                    />
-                  </div>
+        {/* GRID PRODUK */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProducts.map((p) => (
+            <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group">
+              {/* Checkbox */}
+              <input 
+                type="checkbox" className="absolute top-4 left-4 z-30 w-5 h-5 accent-blue-600"
+                checked={selectedProductIds.includes(p.id)}
+                onChange={(e) => e.target.checked ? setSelectedProductIds([...selectedProductIds, p.id]) : setSelectedProductIds(selectedProductIds.filter(id => id !== p.id))}
+              />
 
-                  {/* Kontainer Gambar */}
-                  <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
-                    <img 
-                      src={
-                        p.thumbnail 
-                          ? `${STORAGE_URL}${p.thumbnail}`
-                          : p.image 
-                            ? `${STORAGE_URL}${p.image}`
-                            : "https://via.placeholder.com/400x300?text=No+Image"
-                      } 
-                      alt={p.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      onError={(e) => {
-                        e.target.onerror = null; 
-                        e.target.src = "https://via.placeholder.com/400x300?text=Error+Loading";
-                      }}
-                    />
-                    
-                    {/* Badge Stok */}
-                    <div className="absolute top-3 right-3 z-20">
-                      <span className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-blue-600 shadow-sm border border-gray-100 uppercase tracking-tighter">
-                        Stok: {p.stock}
-                      </span>
-                    </div>
-                  </div>
+              {/* 4. STATUS LABEL (Klik untuk ganti status) */}
+              <button 
+                onClick={() => toggleStatus(p)}
+                className={`absolute top-4 right-4 z-30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm transition-all ${
+                  p.status === "Active" ? "bg-green-100 text-green-700 border border-green-200" : "bg-gray-100 text-gray-500 border border-gray-200"
+                }`}
+              >
+                {p.status || "Active"}
+              </button>
 
-                  {/* Info Produk */}
-                  <div className="p-5 flex-grow">
-                    <h3 className="text-lg font-bold text-gray-800 line-clamp-1 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{p.name}</h3>
-                    <p className="text-blue-600 font-black text-xl mt-1">Rp {Number(p.price).toLocaleString('id-ID')}</p>
-                    <p className="text-gray-400 text-xs mt-2 line-clamp-2 italic font-medium leading-relaxed">
-                      {p.description || "Sentuhan estetika untuk koleksi harian Anda."}
-                    </p>
-                  </div>
-
-                  {/* Tombol Aksi */}
-                  <div className="p-4 bg-gray-50 border-t border-gray-100 grid grid-cols-2 gap-3">
-                    <button 
-                      onClick={() => handleEditClick(p)}
-                      disabled={loading}
-                      className="w-full bg-white border border-gray-300 text-gray-700 py-2.5 rounded-xl font-bold text-xs hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
-                    >
-                      {loading && editId === p.id ? "..." : "✎ Edit"}
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteProduct(p.id)}
-                      className="w-full bg-red-50 text-red-600 py-2.5 rounded-xl font-bold text-xs hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
-                    >
-                      🗑 Hapus
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="col-span-full py-20 text-center bg-white rounded-3xl border-2 border-dashed border-gray-200">
-                <p className="text-gray-400 font-medium">Belum ada produk yang terdaftar.</p>
+              <div className="aspect-[4/3] overflow-hidden bg-gray-100">
+                <img src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : "https://via.placeholder.com/400x300"} className="w-full h-full object-cover" />
               </div>
-            )}
-          </div>
-        )}
+
+              <div className="p-5">
+                <h3 className="font-bold text-gray-800 uppercase truncate">{p.name}</h3>
+                <p className="text-blue-600 font-black text-lg">Rp {Number(p.price).toLocaleString('id-ID')}</p>
+                <div className="flex justify-between mt-3">
+                  <span className="text-[10px] text-gray-400 font-bold uppercase">Stok: {p.stock}</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-gray-50 border-t flex gap-2">
+                <button onClick={() => handleEditClick(p)} className="flex-1 bg-white border py-2 rounded-xl font-bold text-xs hover:bg-gray-100 transition-colors">✎ Edit</button>
+                <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 py-2 rounded-xl font-bold text-xs hover:bg-red-600 hover:text-white transition-all">🗑 Hapus</button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* MODAL FORM */}
+      {/* MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh] border border-gray-100">
-            <h2 className="text-2xl font-black mb-6 text-gray-900 uppercase tracking-tight">
-              {isEdit ? "Update Data" : "Produk Baru"}
-            </h2>
-            <form onSubmit={handleSaveProduct} className="space-y-5">
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Nama Produk</label>
-                <input type="text" required className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400 transition-all font-medium"
-                  value={formData.name} onChange={handleNameChange} />
-              </div>
-
+          <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
+            <h2 className="text-2xl font-black mb-6 uppercase">{isEdit ? "Update Produk" : "Produk Baru"}</h2>
+            <form onSubmit={handleSaveProduct} className="space-y-4">
+              <input type="text" placeholder="Nama Produk" className="w-full border-2 p-3 rounded-xl" value={formData.name} onChange={handleNameChange} required />
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Harga (Rp)</label>
-                  <input type="number" required className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400 transition-all font-medium"
-                    value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Stok</label>
-                  <input type="number" required className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400 transition-all font-medium"
-                    value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} />
-                </div>
+                <input type="number" placeholder="Harga" className="w-full border-2 p-3 rounded-xl" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required />
+                <input type="number" placeholder="Stok" className="w-full border-2 p-3 rounded-xl" value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} required />
               </div>
+              
+              {/* Dropdown Status di Modal */}
+              <select 
+                className="w-full border-2 p-3 rounded-xl font-bold"
+                value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}
+              >
+                <option value="Active">Active (Muncul di Toko)</option>
+                <option value="Draft">Draft (Sembunyikan)</option>
+              </select>
 
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Deskripsi</label>
-                <textarea className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400 transition-all font-medium" rows="3"
-                  value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})}></textarea>
-              </div>
-
-              {/* FOTO DATABASE (JIKA EDIT) */}
-              {isEdit && existingImages.length > 0 && (
-                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                  <label className="block text-xs font-bold uppercase text-gray-400 mb-3 text-center">Foto Saat Ini</label>
-                  <div className="grid grid-cols-4 gap-3">
-                    {existingImages.map((img) => (
-                      <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden shadow-sm border-2 border-white">
-                        <img src={img.url} className="w-full h-full object-cover" />
-                        <button type="button" onClick={() => handleDeleteExistingImage(img.id)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:scale-110 transition-transform">✕</button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* UPLOAD FOTO BARU */}
-              <div className="mt-4">
-                <input type="file" multiple accept="image/*" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current.click()}
-                  className="w-full border-2 border-dashed border-gray-200 p-6 rounded-2xl bg-gray-50 text-gray-500 hover:bg-blue-50 hover:border-blue-200 transition-all flex flex-col items-center justify-center gap-1"
-                >
-                  <span className="text-xl">+</span>
-                  <span className="font-bold text-xs uppercase tracking-widest">{isEdit ? "Tambah Foto" : "Upload Foto"}</span>
-                </button>
-              </div>
-
-              {/* PREVIEW BARU */}
-              {previewUrls.length > 0 && (
-                <div className="grid grid-cols-4 gap-3 pt-2">
-                  {previewUrls.map((url, index) => (
-                    <div key={index} className="relative aspect-square rounded-xl overflow-hidden border-2 border-blue-100">
-                      <img src={url} className="w-full h-full object-cover" />
-                      <button type="button" onClick={() => handleRemovePreview(index)} className="absolute top-1 right-1 bg-gray-900 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">✕</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* FOOTER MODAL */}
-              <div className="flex justify-end gap-3 mt-8 border-t pt-6">
-                <button type="button" onClick={closeModal} className="px-6 py-2 text-gray-400 hover:text-gray-800 font-bold text-sm uppercase tracking-widest">Batal</button>
-                <button type="submit" disabled={loading} className="bg-gray-900 text-white px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-blue-600 disabled:bg-gray-300 shadow-xl transition-all flex items-center gap-2">
-                  {loading ? "Processing..." : isEdit ? "Simpan Perubahan" : "Simpan Produk"}
+              <textarea placeholder="Deskripsi" className="w-full border-2 p-3 rounded-xl" rows="3" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})}></textarea>
+              
+              <div className="flex justify-end gap-3 pt-4">
+                <button type="button" onClick={closeModal} className="px-6 font-bold text-gray-400">Batal</button>
+                <button type="submit" disabled={loading} className="bg-gray-900 text-white px-8 py-3 rounded-xl font-bold">
+                  {loading ? "..." : "Simpan"}
                 </button>
               </div>
             </form>
