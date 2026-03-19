@@ -6,6 +6,9 @@ export default function AdminProducts() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Semua");
   
   // State untuk file asli dan preview
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -242,6 +245,33 @@ export default function AdminProducts() {
             </div>
           </div>
         )}
+
+        {/* --- FITUR #2: SEARCH & FILTER --- */}
+        {!fetchLoading && (
+          <div className="flex flex-col md:flex-row gap-4 mb-8">
+            <div className="relative flex-grow">
+              <span className="absolute left-4 top-3.5 text-gray-400">🔍</span>
+              <input 
+                type="text" 
+                placeholder="Cari nama produk..." 
+                className="w-full pl-12 pr-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-400 outline-none transition-all shadow-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <select 
+              className="px-6 py-3 rounded-2xl border border-gray-200 bg-white font-bold text-gray-700 focus:ring-2 focus:ring-blue-400 outline-none shadow-sm cursor-pointer"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <option value="Semua">Semua Kategori</option>
+              {/* Jika kamu punya data kategori dari API, bisa di-map di sini */}
+              <option value="Mainan">Mainan</option>
+              <option value="Hobi">Hobi</option>
+            </select>
+          </div>
+        )}
+
 
 
         {/* LOADING & CARD GRID */}
