@@ -25,6 +25,7 @@ export default function AdminProducts() {
     price: "",
     stock: "",
     description: "",
+    disc: "",
     status: "Active",
   });
 
