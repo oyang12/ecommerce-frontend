@@ -21,14 +21,28 @@ export default function LoginPage() {
 
       const data = await res.json();
 
+      // --- LOGIKA SESUAI URUTAN PERMINTAANMU ---
+
+      // 1. CEK USER/EMAIL (Status 404 = Not Found)
+      if (res.status === 404) {
+        setError("Email atau user belum terdaftar.");
+        return; // Berhenti di sini
+      }
+
+      // 2. CEK PASSWORD (Status 401 = Unauthorized)
+      if (res.status === 401) {
+        setError("Password yang kamu masukkan salah.");
+        return; // Berhenti di sini
+      }
+
+      // 3. JIKA LOGIN BERHASIL (Status 200/OK)
       if (res.ok) {
-        // 1. Simpan Token & Session User
         localStorage.setItem("token", data.token);
         localStorage.setItem("user_session", JSON.stringify(data.user));
 
         alert(`Login Berhasil! Selamat datang ${data.user.name}`);
 
-        // 2. Redirect Berdasarkan Role di Database
+        // 4. CEK ROLE UNTUK REDIRECT
         if (data.user.role === "admin") {
           router.push("/admin/products");
         } else if (data.user.role === "customer") {
@@ -37,31 +51,16 @@ export default function LoginPage() {
           router.push("/");
         }
       } else {
-        // --- LOGIKA VALIDASI BERTAHAP YANG DIPERTUJAM ---
-        const serverMessage = data.message ? data.message.toLowerCase() : "";
-
-        // Tahap 1: Cek apakah user benar-benar tidak ada
-        // Gunakan status 404 (Not Found) sebagai indikator utama email tidak ada
-        if (res.status === 404 || serverMessage.includes("not found") || serverMessage.includes("belum terdaftar")) {
-          setError("Email atau user belum terdaftar.");
-        } 
-        
-        // Tahap 2: Jika statusnya 401 (Unauthorized), hampir pasti ini adalah masalah Password
-        // Karena budi@gmail.com ada di DB, backend seharusnya kirim 401 jika password salah
-        else if (res.status === 401 || serverMessage.includes("password") || serverMessage.includes("wrong") || serverMessage.includes("invalid")) {
-          setError("Password yang kamu masukkan salah.");
-        } 
-        
-        // Tahap 3: Error cadangan jika backend tidak kirim status code yang standar
-        else {
-          setError(data.message || "Terjadi kesalahan saat login");
-        }
+        // Error tidak terduga lainnya
+        setError(data.message || "Terjadi kesalahan pada sistem.");
       }
+
     } catch (err) {
       setError("Gagal terhubung ke server Backend");
     }
   };
 
+  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
       <form onSubmit={handleLogin} className="p-10 bg-white shadow-2xl rounded-[2.5rem] w-full max-w-md border border-gray-100">
