@@ -278,7 +278,7 @@ export default function AdminProducts() {
             {/* 2. Stok Menipis (Logika Baru: <= 20) */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Stok Menipis</p>
-              <h2 className="text-3xl font-black text-orange-600 mt-1">
+              <h2 className="text-3xl font-black text-yellow-500 mt-1"> {/* UBAH KE YELLOW */}
                 {products.filter(p => p.stock > 0 && p.stock <= 20).length}
               </h2>
             </div>
@@ -373,7 +373,7 @@ export default function AdminProducts() {
                 <div className="flex justify-between items-end mt-4">
                   <p className="text-blue-600 font-black text-lg">Rp {Number(p.price).toLocaleString('id-ID')}</p>
                   <span className={`text-[10px] font-bold uppercase ${
-                    p.stock === 0 ? 'text-red-600' : p.stock <= 20 ? 'text-orange-500' : 'text-gray-400'
+                    p.stock === 0 ? 'text-red-600' : p.stock <= 20 ? 'yellow-500' : 'text-gray-400'
                   }`}>
                     Stok: {p.stock}
                   </span>
