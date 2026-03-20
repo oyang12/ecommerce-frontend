@@ -157,7 +157,7 @@ export default function ProductDetailPage() {
             <div className="space-y-6">
               <div>
                 <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Deskripsi Produk</h3>
-                <p className="text-gray-600 leading-relaxed italic text-sm md:text-base">
+                <p className="text-gray-600 leading-relaxed italic text-sm md:text-base whitespace-pre-line">
                   {product.description || "Produk ini belum memiliki deskripsi detail."}
                 </p>
               </div>
