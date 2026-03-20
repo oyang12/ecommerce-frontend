@@ -166,12 +166,28 @@ export default function AdminProducts() {
           slug: data.slug,
           price: data.price,
           stock: data.stock,
-          disc: data.disc || 0, // Ambil dari DB, jika NULL jadikan 0
+          // LOGIKA BARU: Ambil dari DB, jika NULL/kosong jadikan 0
+          disc: data.disc || 0, 
           description: data.description || "",
           status: data.status || "Active",
         });
-        // ... sisa kode existingImages tetap sama ...
         setEditId(data.id);
+        
+        // --- MEMULIHKAN KODE FOTO DARI "KODING ADMIN MANTAP" ---
+        // Logika untuk menampilkan kembali foto-foto lama dari database (menggunakan .image)
+        const formattedImages = (data.images || []).map(img => {
+          // Ambil nama file langsung dari kolom 'image' sesuai struktur database
+          const fileName = img.image || ""; 
+          
+          return {
+            ...img,
+            // Gabungkan langsung dengan STORAGE_URL agar preview muncul
+            url: `${STORAGE_URL}${fileName}` 
+          };
+        });
+        setExistingImages(formattedImages); // Masukkan ke state existingImages
+        // ------------------------------------------------------
+
         setIsEdit(true);
         setShowModal(true);
       }
@@ -187,47 +203,52 @@ export default function AdminProducts() {
     e.preventDefault();
     setLoading(true);
     const token = localStorage.getItem("token");
-  
-    // LOGIKA PROTEKSI DISKON: 
-    // Jika disc kosong, undefined, atau string kosong, ubah jadi 0
+
+    // LOGIKA PROTEKSI DISKON:
+    // Jika kolom disc kosong/tidak diisi, otomatis kita set ke 0 agar tidak error di DB
     const finalDisc = formData.disc && formData.disc !== "" ? formData.disc : 0;
-  
+
     const dataToSend = new FormData();
     dataToSend.append("name", formData.name);
     dataToSend.append("slug", formData.slug);
     dataToSend.append("price", formData.price);
     dataToSend.append("stock", formData.stock);
-    dataToSend.append("disc", finalDisc); // Gunakan variabel finalDisc di sini
+    dataToSend.append("disc", finalDisc); // Mengirim nilai diskon (angka atau 0)
     dataToSend.append("description", formData.description || "");
     dataToSend.append("status", formData.status);
-  
-    // Bagian pengiriman gambar tetap sama
+
+    // TETAP MENGGUNAKAN LOGIKA FOTO DARI "KODING ADMIN MANTAP"
     if (selectedFiles.length > 0) {
       for (let i = 0; i < selectedFiles.length; i++) {
+        // Mengirim array foto ke backend
         dataToSend.append("images[]", selectedFiles[i]); 
       }
     }
-  
+
+    // Penanganan Update vs Tambah Baru
     const url = isEdit ? `${API_URL}/${editId}` : API_URL;
-    if (isEdit) dataToSend.append("_method", "PUT");
-  
+    if (isEdit) {
+      // Laravel membutuhkan _method PUT jika dikirim via FormData (POST)
+      dataToSend.append("_method", "PUT");
+    }
+
     try {
       const res = await fetch(url, {
-        method: "POST",
+        method: "POST", // Selalu POST karena FormData tidak support PUT murni di beberapa server
         headers: { "Authorization": `Bearer ${token}` },
         body: dataToSend
       });
-  
+
       if (res.ok) {
-        alert(isEdit ? "Produk Berhasil Diperbarui!" : "Produk Berhasil Ditambah!");
         closeModal();
-        fetchProducts();
+        fetchProducts(); // Refresh data tabel & statistik
       } else {
         const errData = await res.json();
-        alert("Gagal: " + JSON.stringify(errData));
+        alert("Gagal menyimpan: " + JSON.stringify(errData));
       }
     } catch (err) {
-      alert("Error koneksi ke server");
+      console.error("Error connection:", err);
+      alert("Terjadi kesalahan koneksi ke server.");
     } finally {
       setLoading(false);
     }
