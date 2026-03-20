@@ -190,9 +190,13 @@ export default function ProductDetailPage() {
                 <button 
                   onClick={handleOrder}
                   disabled={product.stock <= 0}
-                  className="w-full bg-[#0a0f1e] text-white py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-700 transition-all shadow-xl active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className={`w-full py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] transition-all shadow-xl active:scale-95 disabled:bg-gray-300
+                    ${isLoggedIn 
+                      ? 'bg-[#0a0f1e] text-white hover:bg-blue-700' 
+                      : 'bg-yellow-500 text-white hover:bg-yellow-600'
+                    }`}
                 >
-                  Pesan Sekarang (WhatsApp)
+                  {isLoggedIn ? "Pesan Sekarang (WhatsApp)" : "Login untuk Memesan"}
                 </button>
               </div>
             </div>
