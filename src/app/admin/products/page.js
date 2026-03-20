@@ -430,9 +430,9 @@ export default function AdminProducts() {
                 </div>
               </div>
             );
-          )}
+          })}
         </div>
-
+      </div>
       {/* MODAL PRODUK (TAMBAH / EDIT) */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
