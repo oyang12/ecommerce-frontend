@@ -318,7 +318,7 @@ export default function AdminProducts() {
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Produk Diskon</p>
               <h2 className="text-3xl font-black text-purple-600 mt-1">
-                {products.filter(p => p.discount_price > 0).length}
+                {products.filter(p => p.disc > 0).length}
               </h2>
             </div>
           </div>
@@ -361,54 +361,95 @@ export default function AdminProducts() {
 
         {/* GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map((p) => (
-            <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300">
-              <input 
-                type="checkbox" className="absolute top-4 left-4 z-30 w-5 h-5 accent-blue-600 cursor-pointer"
-                checked={selectedProductIds.includes(p.id)}
-                onChange={(e) => e.target.checked ? setSelectedProductIds([...selectedProductIds, p.id]) : setSelectedProductIds(selectedProductIds.filter(id => id !== p.id))}
-              />
-
-              <button 
-                onClick={() => toggleStatus(p)}
-                className={`absolute top-4 right-4 z-30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm transition-all hover:scale-105 active:scale-95 ${
-                  p.status === "Active" ? "bg-green-100 text-green-700 border border-green-200" : "bg-gray-100 text-gray-500 border border-gray-200"
-                }`}
-              >
-                {p.status || "Active"}
-              </button>
-
-              <div className="aspect-[4/3] overflow-hidden bg-gray-100">
-                <img 
-                  src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : "https://via.placeholder.com/400x300"} 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                  alt={p.name}
+          {filteredProducts.map((p) => {
+            // LOGIKA DISKON: Hitung harga akhir jika disc > 0
+            const hasDiscount = p.disc && Number(p.disc) > 0;
+            const finalPrice = hasDiscount 
+              ? Number(p.price) - (Number(p.price) * Number(p.disc) / 100) 
+              : Number(p.price);
+        
+            return (
+              <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300">
+                
+                {/* BADGE DISKON: Muncul di pojok kiri atas foto */}
+                {hasDiscount && (
+                  <div className="absolute top-4 left-12 z-30 bg-red-600 text-white px-2 py-1 rounded-lg text-[9px] font-black uppercase shadow-lg">
+                    -{p.disc}%
+                  </div>
+                )}
+        
+                <input 
+                  type="checkbox" className="absolute top-4 left-4 z-30 w-5 h-5 accent-blue-600 cursor-pointer"
+                  checked={selectedProductIds.includes(p.id)}
+                  onChange={(e) => e.target.checked ? setSelectedProductIds([...selectedProductIds, p.id]) : setSelectedProductIds(selectedProductIds.filter(id => id !== p.id))}
                 />
-              </div>
-
-              <div className="p-5 pb-0">
-                <h3 className="font-bold text-gray-800 uppercase truncate">{p.name}</h3>
-                <p className="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed h-[32px]">
-                  {p.description || "Tidak ada deskripsi produk."}
-                </p>
-                <div className="flex justify-between items-end mt-4">
-                  <p className="text-blue-600 font-black text-lg">Rp {Number(p.price).toLocaleString('id-ID')}</p>
-                  <span className={`text-[10px] font-bold uppercase ${
-                    p.stock === 0 ? 'text-red-600' : p.stock <= 20 ? 'text-yellow-500' : 'text-gray-400'
-                  }`}>
-                    Stok: {p.stock}
-                  </span>
+        
+                <button 
+                  onClick={() => toggleStatus(p)}
+                  className={`absolute top-4 right-4 z-30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm transition-all hover:scale-105 active:scale-95 ${
+                    p.status === "Active" ? "bg-green-100 text-green-700 border border-green-200" : "bg-gray-100 text-gray-500 border border-gray-200"
+                  }`}
+                >
+                  {p.status || "Active"}
+                </button>
+        
+                <div className="aspect-[4/3] overflow-hidden bg-gray-100">
+                  <img 
+                    src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : "https://via.placeholder.com/400x300"} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                    alt={p.name}
+                  />
+                </div>
+        
+                <div className="p-5 pb-0">
+                  <h3 className="font-bold text-gray-800 uppercase truncate">{p.name}</h3>
+                  <p className="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed h-[32px]">
+                    {p.description || "Tidak ada deskripsi produk."}
+                  </p>
+        
+                  <div className="flex justify-between items-end mt-4">
+                    <div>
+                      {/* TAMPILAN HARGA */}
+                      {hasDiscount ? (
+                        <>
+                          <p className="text-gray-400 text-[10px] line-through leading-none mb-1">
+                            Rp {Number(p.price).toLocaleString('id-ID')}
+                          </p>
+                          <p className="text-blue-600 font-black text-lg leading-none">
+                            Rp {Number(finalPrice).toLocaleString('id-ID')}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-blue-600 font-black text-lg leading-none">
+                          Rp {Number(p.price).toLocaleString('id-ID')}
+                        </p>
+                      )}
+                    </div>
+        
+                    <div className="flex flex-col items-end">
+                      {/* INDIKATOR DISKON KECIL */}
+                      {hasDiscount && (
+                        <span className="text-[9px] font-bold text-red-500 uppercase mb-1">
+                          Disc {p.disc}%
+                        </span>
+                      )}
+                      <span className={`text-[10px] font-bold uppercase ${
+                        p.stock === 0 ? 'text-red-600' : p.stock <= 20 ? 'text-yellow-500' : 'text-gray-400'
+                      }`}>
+                        Stok: {p.stock}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+        
+                <div className="p-4 bg-gray-50 border-t flex gap-2 mt-4">
+                  <button onClick={() => handleEditClick(p)} className="flex-1 bg-white border border-gray-200 py-2 rounded-xl font-bold text-xs hover:bg-gray-900 hover:text-white transition-all">✎ Edit</button>
+                  <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 py-2 rounded-xl font-bold text-xs hover:bg-red-600 hover:text-white transition-all">🗑 Hapus</button>
                 </div>
               </div>
-
-              <div className="p-4 bg-gray-50 border-t flex gap-2 mt-4">
-                <button onClick={() => handleEditClick(p)} className="flex-1 bg-white border border-gray-200 py-2 rounded-xl font-bold text-xs hover:bg-gray-900 hover:text-white transition-all">✎ Edit</button>
-                <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 py-2 rounded-xl font-bold text-xs hover:bg-red-600 hover:text-white transition-all">🗑 Hapus</button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-      </div>
 
       {/* MODAL PRODUK (TAMBAH / EDIT) */}
       {showModal && (
