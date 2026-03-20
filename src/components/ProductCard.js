@@ -65,11 +65,7 @@ export default function ProductCard({ p }) {
           </div>
 
           <div className="text-right">
-            {hasDiscount ? (
-              <div className="text-[9px] font-bold text-red-500 uppercase mb-1">
-                PROMO UNTUNG
-              </div>
-            ) : null}
+            
             <div className={`text-[10px] font-bold uppercase ${
               p.stock === 0 ? 'text-red-600' : p.stock <= 20 ? 'text-yellow-500' : 'text-gray-400'
             }`}>
