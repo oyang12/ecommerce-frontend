@@ -42,7 +42,7 @@ export default function ProductCard({ p }) {
         />
       </div>
 
-      {/* CONTENT (TANPA DESKRIPSI) */}
+      {/* CONTENT */}
       <div className="p-5 flex-grow flex flex-col">
         <div className="mb-2">
           <h3 className="font-bold text-gray-800 uppercase truncate text-sm tracking-tight">
@@ -50,7 +50,8 @@ export default function ProductCard({ p }) {
           </h3>
         </div>
 
-        <div className="mt-auto flex justify-between items-end pt-3 border-t border-gray-50">
+        {/* INFO HARGA & STOK - Tanpa Border Atas */}
+        <div className="mt-auto flex justify-between items-end pt-3">
           <div className="flex flex-col">
             {/* Harga Asli (Coret) */}
             {hasDiscount ? (
@@ -65,7 +66,6 @@ export default function ProductCard({ p }) {
           </div>
 
           <div className="text-right">
-            
             <div className={`text-[10px] font-bold uppercase ${
               p.stock === 0 ? 'text-red-600' : p.stock <= 20 ? 'text-yellow-500' : 'text-gray-400'
             }`}>
@@ -75,8 +75,8 @@ export default function ProductCard({ p }) {
         </div>
       </div>
 
-      {/* BUTTON ACTION */}
-      <div className="p-4 bg-gray-50/50 border-t flex gap-2">
+      {/* BUTTON ACTION - Garis border-t dihapus */}
+      <div className="p-4 flex gap-2 pt-0">
         <Link 
           href={`/product/${p.slug}`} 
           className="flex-1 bg-white border border-gray-200 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest text-center hover:bg-gray-900 hover:text-white transition-all shadow-sm active:scale-95"
