@@ -275,13 +275,20 @@ export default function AdminProducts() {
               <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Total Produk</p>
               <h2 className="text-3xl font-black text-gray-900 mt-1">{products.length}</h2>
             </div>
+            {/* 2. Stok Menipis (Logika Baru: <= 20) */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Stok Menipis</p>
-              <h2 className="text-3xl font-black text-orange-600 mt-1">{products.filter(p => p.stock > 0 && p.stock < 5).length}</h2>
+              <h2 className="text-3xl font-black text-orange-600 mt-1">
+                {products.filter(p => p.stock > 0 && p.stock <= 20).length}
+              </h2>
             </div>
+            
+            {/* 3. Stok Habis (Logika: === 0) */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Stok Habis</p>
-              <h2 className="text-3xl font-black text-red-600 mt-1">{products.filter(p => p.stock <= 0).length}</h2>
+              <h2 className="text-3xl font-black text-red-600 mt-1">
+                {products.filter(p => p.stock == 0).length}
+              </h2>
             </div>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Draft / Hidden</p>
