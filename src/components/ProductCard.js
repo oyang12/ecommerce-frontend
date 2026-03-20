@@ -25,7 +25,7 @@ export default function ProductCard({ p }) {
           alt={p.name}
           onError={(e) => { e.target.src = FALLBACK_IMG; }}
         />
-        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-gray-100 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-10"></div>
       </div>
 
       {/* CONTENT - STYLE SAMA */}
