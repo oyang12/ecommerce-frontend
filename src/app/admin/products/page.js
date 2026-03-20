@@ -351,78 +351,81 @@ export default function AdminProducts() {
         
             return (
               <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300 flex flex-col">
-                {hasDiscount && (
-                  <div className="absolute top-4 left-12 z-30 bg-red-600 text-white px-2 py-1 rounded-lg text-[9px] font-black uppercase shadow-lg">
-                    -{p.disc}%
-                  </div>
-                )}
+                {/* Checkbox */}
                 <input 
-                  type="checkbox" className="absolute top-4 left-4 z-30 w-5 h-5 accent-blue-600 cursor-pointer"
+                  type="checkbox" className="absolute top-4 left-4 z-30 w-5 h-5 accent-blue-600 cursor-pointer shadow-sm"
                   checked={selectedProductIds.includes(p.id)}
                   onChange={(e) => e.target.checked ? setSelectedProductIds([...selectedProductIds, p.id]) : setSelectedProductIds(selectedProductIds.filter(id => id !== p.id))}
                 />
+        
+                {/* Badge Diskon - Ditempatkan Absolute terhadap Gambar */}
+                {hasDiscount && (
+                  <div className="absolute top-4 left-12 z-30 bg-red-600 text-white px-2 py-1 rounded-lg text-[10px] font-black uppercase shadow-md">
+                    -{p.disc}%
+                  </div>
+                )}
+        
+                {/* Badge Status */}
                 <button 
                   onClick={() => toggleStatus(p)}
                   className={`absolute top-4 right-4 z-30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm transition-all hover:scale-105 active:scale-95 ${
-                    p.status === "Active" ? "bg-green-100 text-green-700 border border-green-200" : "bg-gray-100 text-gray-500 border border-gray-200"
+                    p.status === "Active" ? "bg-green-500 text-white border-none" : "bg-gray-200 text-gray-600 border-none"
                   }`}
                 >
                   {p.status || "Active"}
                 </button>
-                <div className="aspect-[4/3] overflow-hidden bg-gray-100">
+        
+                {/* Container Gambar */}
+                <div className="aspect-[4/3] overflow-hidden bg-gray-100 relative">
                   <img 
                     src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : "https://via.placeholder.com/400x300"} 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                     alt={p.name}
                   />
                 </div>
-                <div className="p-5 flex-grow">
-                  <h3 className="font-bold text-gray-800 uppercase truncate">{p.name}</h3>
-                  <p className="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed h-[32px]">
-                    {p.description || "Tidak ada deskripsi produk."}
-                  </p>
+        
+                {/* Konten Produk */}
+                <div className="p-5 flex-grow flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-bold text-gray-800 uppercase truncate text-sm">{p.name}</h3>
+                    <p className="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed min-h-[32px]">
+                      {p.description || "Tidak ada deskripsi produk."}
+                    </p>
+                  </div>
                   
-                  <div className="flex justify-between items-end mt-4">
-                    <div className="flex flex-col justify-end h-[38px]">
-                      {hasDiscount ? (
-                        <>
-                          <p className="text-gray-400 text-[10px] line-through leading-none mb-1">
-                            Rp {Number(p.price).toLocaleString('id-ID')}
-                          </p>
-                          <p className="text-blue-600 font-black text-lg leading-none">
-                            Rp {Number(finalPrice).toLocaleString('id-ID')}
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <div className="h-[10px] mb-1"></div>
-                          <p className="text-blue-600 font-black text-lg leading-none">
-                            Rp {Number(p.price).toLocaleString('id-ID')}
-                          </p>
-                        </>
+                  <div className="flex justify-between items-end mt-4 pt-4 border-t border-gray-50">
+                    {/* Bagian Harga */}
+                    <div className="flex flex-col">
+                      {hasDiscount && (
+                        <span className="text-gray-400 text-[10px] line-through leading-none mb-1">
+                          Rp {Number(p.price).toLocaleString('id-ID')}
+                        </span>
                       )}
+                      <span className="text-blue-600 font-black text-lg leading-none">
+                        Rp {Math.floor(finalPrice).toLocaleString('id-ID')}
+                      </span>
                     </div>
         
-                    <div className="flex flex-col items-end h-[38px] justify-end">
-                      {hasDiscount ? (
-                        <span className="text-[9px] font-bold text-red-500 uppercase mb-1">
-                          Disc {p.disc}%
-                        </span>
-                      ) : (
-                        <div className="h-[9px] mb-1"></div>
+                    {/* Bagian Stok & Label Promo */}
+                    <div className="text-right">
+                      {hasDiscount && (
+                        <div className="text-[9px] font-bold text-red-500 uppercase mb-1">
+                          PROMO UNTUNG
+                        </div>
                       )}
-                      <span className={`text-[10px] font-bold uppercase leading-none ${
+                      <div className={`text-[10px] font-bold uppercase ${
                         p.stock === 0 ? 'text-red-600' : p.stock <= 20 ? 'text-yellow-500' : 'text-gray-400'
                       }`}>
                         Stok: {p.stock}
-                      </span>
+                      </div>
                     </div>
                   </div>
                 </div>
                 
-                <div className="p-4 bg-gray-50 border-t flex gap-2">
-                  <button onClick={() => handleEditClick(p)} className="flex-1 bg-white border border-gray-200 py-2 rounded-xl font-bold text-xs hover:bg-gray-900 hover:text-white transition-all">✎ Edit</button>
-                  <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 py-2 rounded-xl font-bold text-xs hover:bg-red-600 hover:text-white transition-all">🗑 Hapus</button>
+                {/* Tombol Aksi */}
+                <div className="p-4 bg-gray-50/50 border-t flex gap-2">
+                  <button onClick={() => handleEditClick(p)} className="flex-1 bg-white border border-gray-200 py-2 rounded-xl font-bold text-[10px] uppercase hover:bg-gray-900 hover:text-white transition-all shadow-sm">✎ Edit</button>
+                  <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 py-2 rounded-xl font-bold text-[10px] uppercase hover:bg-red-600 hover:text-white transition-all shadow-sm">🗑 Hapus</button>
                 </div>
               </div>
             );
