@@ -395,7 +395,8 @@ export default function AdminProducts() {
                     </p>
                   </div>
                   
-                  <div className="mt-auto flex justify-between items-end pt-4 border-t border-gray-50">
+                  {/* HARGA & STOK - Garis border-t dihapus agar clean */}
+                  <div className="mt-auto flex justify-between items-end pt-4">
                     <div className="flex flex-col">
                       {hasDiscount ? (
                         <span className="text-gray-400 text-[10px] line-through leading-none mb-1">
@@ -408,11 +409,7 @@ export default function AdminProducts() {
                     </div>
 
                     <div className="text-right">
-                      {hasDiscount ? (
-                        <div className="text-[9px] font-bold text-red-500 uppercase mb-1">
-                          PROMO UNTUNG
-                        </div>
-                      ) : null}
+                      {/* Teks PROMO UNTUNG sudah dihapus dari sini */}
                       <div className={`text-[10px] font-bold uppercase ${
                         p.stock === 0 ? 'text-red-600' : p.stock <= 20 ? 'text-yellow-500' : 'text-gray-400'
                       }`}>
@@ -422,7 +419,8 @@ export default function AdminProducts() {
                   </div>
                 </div>
                 
-                <div className="p-4 bg-gray-50/50 border-t flex gap-2">
+                {/* TOMBOL AKSI - Garis border-t dan bg-gray-50/50 dihapus */}
+                <div className="p-4 flex gap-2 pt-0">
                   <button onClick={() => handleEditClick(p)} className="flex-1 bg-white border border-gray-200 py-2 rounded-xl font-bold text-[10px] uppercase hover:bg-gray-900 hover:text-white transition-all shadow-sm">✎ Edit</button>
                   <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 py-2 rounded-xl font-bold text-[10px] uppercase hover:bg-red-600 hover:text-white transition-all shadow-sm">🗑 Hapus</button>
                 </div>
