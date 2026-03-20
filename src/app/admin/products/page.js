@@ -383,7 +383,6 @@ export default function AdminProducts() {
                   </p>
                   
                   <div className="flex justify-between items-end mt-4">
-                    {/* Sisi Kiri: Harga */}
                     <div className="flex flex-col justify-end h-[38px]">
                       {hasDiscount ? (
                         <>
@@ -396,7 +395,6 @@ export default function AdminProducts() {
                         </>
                       ) : (
                         <>
-                          {/* Placeholder agar tinggi tetap konsisten */}
                           <div className="h-[10px] mb-1"></div>
                           <p className="text-blue-600 font-black text-lg leading-none">
                             Rp {Number(p.price).toLocaleString('id-ID')}
@@ -405,14 +403,12 @@ export default function AdminProducts() {
                       )}
                     </div>
         
-                    {/* Sisi Kanan: Info Diskon & Stok */}
                     <div className="flex flex-col items-end h-[38px] justify-end">
                       {hasDiscount ? (
                         <span className="text-[9px] font-bold text-red-500 uppercase mb-1">
                           Disc {p.disc}%
                         </span>
                       ) : (
-                        /* Placeholder agar teks Stok tidak naik ke atas */
                         <div className="h-[9px] mb-1"></div>
                       )}
                       <span className={`text-[10px] font-bold uppercase leading-none ${
@@ -433,7 +429,8 @@ export default function AdminProducts() {
           })}
         </div>
       </div>
-      {/* MODAL PRODUK (TAMBAH / EDIT) */}
+
+      {/* MODAL PRODUK */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-[40px] p-10 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[95vh] border border-gray-100">
