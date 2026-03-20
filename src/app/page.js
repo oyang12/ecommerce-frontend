@@ -38,17 +38,6 @@ export default function HomePage() {
             <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight uppercase">Produk Kami</h1>
             <p className="text-gray-500 mt-1 italic text-sm">Temukan produk impian Anda dengan kualitas terbaik.</p>
           </div>
-          
-          {/* JUMLAH PRODUK - STYLE ADMIN */}
-          <div className="bg-white px-8 py-4 rounded-2xl shadow-sm border border-gray-100 flex items-center group hover:border-black transition-all">
-             <div className="flex flex-col">
-               <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest leading-none mb-1">Status</span>
-               <span className="text-gray-900 font-black text-xs uppercase tracking-tighter">Produk Tersedia</span>
-             </div>
-             <div className="ml-6 pl-6 border-l-2 border-gray-100">
-               <span className="text-blue-600 font-black text-3xl">{products.length}</span> 
-             </div>
-          </div>
         </div>
 
         {products.length === 0 ? (
