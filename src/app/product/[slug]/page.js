@@ -23,7 +23,6 @@ export default function ProductDetailPage() {
         const result = await res.json();
         if (result.data) {
           setProduct(result.data);
-          // PERBAIKAN: Menggunakan .image sesuai struktur database
           setActiveImage(result.data.thumbnail || (result.data.images?.[0]?.image));
         }
       } catch (err) {
@@ -51,8 +50,14 @@ export default function ProductDetailPage() {
     </div>
   );
 
+  // LOGIKA HARGA DISKON
+  const price = Number(product.price) || 0;
+  const discountPercent = Number(product.disc) || 0;
+  const hasDiscount = discountPercent > 0;
+  const finalPrice = hasDiscount ? price - (price * discountPercent / 100) : price;
+
   const handleOrder = () => {
-    const message = `Halo Admin, saya tertarik dengan produk *${product.name}* (Harga: Rp ${Number(product.price).toLocaleString('id-ID')}). Apakah stok masih tersedia?`;
+    const message = `Halo Admin, saya tertarik dengan produk *${product.name}* (Harga: Rp ${Math.floor(finalPrice).toLocaleString('id-ID')}). Apakah stok masih tersedia?`;
     window.open(`https://wa.me/628123456789?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -79,29 +84,33 @@ export default function ProductDetailPage() {
               />
             </div>
             
-            {product.images && product.images.length > 0 && (
-              <div className="grid grid-cols-4 gap-4">
-                {/* Thumbnail utama */}
+            <div className="grid grid-cols-4 gap-4">
+              {/* 1. Thumbnail Utama (Selalu Muncul) */}
+              {product.thumbnail && (
                 <button 
                   onClick={() => setActiveImage(product.thumbnail)}
-                  className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${activeImage === product.thumbnail ? 'border-gray-900' : 'border-transparent opacity-50'}`}
+                  className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${activeImage === product.thumbnail ? 'border-gray-900 shadow-md scale-95' : 'border-transparent opacity-50 hover:opacity-100'}`}
                 >
-                  <img src={`${STORAGE_URL}${product.thumbnail}`} className="w-full h-full object-cover" alt="thumb" />
+                  <img src={`${STORAGE_URL}${product.thumbnail}`} className="w-full h-full object-cover" alt="main-thumb" />
                 </button>
-                {/* List gambar tambahan */}
-                {product.images.map((img, idx) => (
+              )}
+
+              {/* 2. List gambar tambahan (HANYA render jika berbeda dengan thumbnail) */}
+              {product.images && product.images
+                .filter(img => img.image !== product.thumbnail) // FILTER AGAR TIDAK GANDA
+                .map((img, idx) => (
                   <button 
                     key={idx}
-                    onClick={() => setActiveImage(img.image)} // PERBAIKAN: Menggunakan .image
+                    onClick={() => setActiveImage(img.image)}
                     className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${
                       activeImage === img.image ? 'border-gray-900 shadow-md scale-95' : 'border-transparent opacity-50 hover:opacity-100'
                     }`}
                   >
                     <img src={`${STORAGE_URL}${img.image}`} className="w-full h-full object-cover" alt={`gallery-${idx}`} />
                   </button>
-                ))}
-              </div>
-            )}
+                ))
+              }
+            </div>
           </div>
 
           {/* INFO SECTION */}
@@ -113,15 +122,36 @@ export default function ProductDetailPage() {
               {product.name}
             </h1>
             
-            <div className="flex items-center gap-4 mb-8">
-              <p className="text-3xl font-black text-gray-900">
-                Rp {Number(product.price).toLocaleString('id-ID')}
-              </p>
-              <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                product.stock > 0 ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-600 border-red-100'
-              }`}>
-                {product.stock > 0 ? `Ready Stok: ${product.stock}` : 'Stok Habis'}
-              </span>
+            <div className="flex flex-col mb-8">
+              <div className="flex items-center gap-3">
+                <p className="text-3xl font-black text-gray-900">
+                  Rp {Math.floor(finalPrice).toLocaleString('id-ID')}
+                </p>
+                {hasDiscount && (
+                  <span className="bg-green-100 text-green-700 px-2 py-1 rounded-lg text-[10px] font-black uppercase">
+                    Ready Stok: {product.stock}
+                  </span>
+                )}
+              </div>
+              
+              {/* TAMPILAN DISKON & HARGA CORET */}
+              <div className="flex items-center gap-4 mt-2">
+                {hasDiscount && (
+                  <>
+                    <span className="text-gray-400 line-through text-sm font-bold">
+                      Rp {price.toLocaleString('id-ID')}
+                    </span>
+                    <span className="bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-black">
+                      -{discountPercent}% OFF
+                    </span>
+                  </>
+                )}
+                {!hasDiscount && (
+                   <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-100">
+                    Ready Stok: {product.stock}
+                   </span>
+                )}
+              </div>
             </div>
 
             <div className="border-t border-gray-200 pt-8 space-y-6">
