@@ -29,25 +29,28 @@ export default function LoginPage() {
         alert(`Login Berhasil! Selamat datang ${data.user.name}`);
 
         // 2. Redirect Berdasarkan Role di Database
-        // Jika admin -> masuk ke folder admin/products
         if (data.user.role === "admin") {
           router.push("/admin/products");
-        } 
-        // Jika customer -> masuk ke folder user
-        else if (data.user.role === "customer") {
+        } else if (data.user.role === "customer") {
           router.push("/user");
-        } 
-        else {
+        } else {
           router.push("/");
         }
       } else {
-        // 3. Validasi Pesan Error Spesifik
-        // Backend biasanya mengirimkan pesan yang berbeda untuk tiap kasus
-        if (data.message.toLowerCase().includes("password")) {
-          setError("Password yang kamu masukkan salah.");
-        } else if (data.message.toLowerCase().includes("email") || data.message.toLowerCase().includes("user")) {
+        // --- LOGIKA VALIDASI BERTAHAP ---
+        const serverMessage = data.message ? data.message.toLowerCase() : "";
+
+        // Tahap 1: Cek apakah user/email terdaftar
+        // Kita cek status 404 atau pesan yang mengandung kata 'user'/'email'/'found'
+        if (res.status === 404 || serverMessage.includes("email") || serverMessage.includes("user") || serverMessage.includes("found")) {
           setError("Email atau user belum terdaftar.");
-        } else {
+        } 
+        // Tahap 2: Jika email ada tapi password salah (biasanya status 401 Unauthorized)
+        else if (res.status === 401 || serverMessage.includes("password") || serverMessage.includes("wrong") || serverMessage.includes("invalid")) {
+          setError("Password yang kamu masukkan salah.");
+        } 
+        // Tahap 3: Error umum lainnya
+        else {
           setError(data.message || "Terjadi kesalahan saat login");
         }
       }
