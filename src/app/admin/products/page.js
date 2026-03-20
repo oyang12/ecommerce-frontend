@@ -344,19 +344,15 @@ export default function AdminProducts() {
         {/* GRID PRODUK */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((p) => {
-            // Pastikan konversi angka aman
             const price = Number(p.price) || 0;
             const discountPercent = Number(p.disc) || 0;
             const hasDiscount = discountPercent > 0;
-            
             const finalPrice = hasDiscount 
               ? price - (price * discountPercent / 100) 
               : price;
-        
+
             return (
               <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300 flex flex-col">
-                
-                {/* Checkbox & Status - Dibungkus agar tidak berantakan */}
                 <div className="absolute top-4 left-4 right-4 z-30 flex justify-between items-start pointer-events-none">
                   <input 
                     type="checkbox" 
@@ -367,7 +363,6 @@ export default function AdminProducts() {
                       : setSelectedProductIds(selectedProductIds.filter(id => id !== p.id))
                     }
                   />
-                  
                   <button 
                     onClick={() => toggleStatus(p)}
                     className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm transition-all hover:scale-105 active:scale-95 pointer-events-auto ${
@@ -377,15 +372,13 @@ export default function AdminProducts() {
                     {p.status || "Active"}
                   </button>
                 </div>
-        
-                {/* Badge Diskon - Muncul hanya jika ada diskon > 0 */}
+
                 {hasDiscount && (
                   <div className="absolute top-12 left-4 z-30 bg-red-600 text-white px-2 py-1 rounded-lg text-[10px] font-black uppercase shadow-md">
                     -{discountPercent}%
                   </div>
                 )}
-        
-                {/* Container Gambar */}
+
                 <div className="aspect-[4/3] overflow-hidden bg-gray-100">
                   <img 
                     src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : "https://via.placeholder.com/400x300"} 
@@ -393,8 +386,7 @@ export default function AdminProducts() {
                     alt={p.name}
                   />
                 </div>
-        
-                {/* Konten Produk */}
+
                 <div className="p-5 flex-grow flex flex-col">
                   <div className="mb-4">
                     <h3 className="font-bold text-gray-800 uppercase truncate text-sm">{p.name}</h3>
@@ -405,7 +397,6 @@ export default function AdminProducts() {
                   
                   <div className="mt-auto flex justify-between items-end pt-4 border-t border-gray-50">
                     <div className="flex flex-col">
-                      {/* Gunakan operator ternary yang mengembalikan null, bukan angka 0 */}
                       {hasDiscount ? (
                         <span className="text-gray-400 text-[10px] line-through leading-none mb-1">
                           Rp {price.toLocaleString('id-ID')}
@@ -415,7 +406,7 @@ export default function AdminProducts() {
                         Rp {Math.floor(finalPrice).toLocaleString('id-ID')}
                       </span>
                     </div>
-        
+
                     <div className="text-right">
                       {hasDiscount ? (
                         <div className="text-[9px] font-bold text-red-500 uppercase mb-1">
@@ -431,18 +422,6 @@ export default function AdminProducts() {
                   </div>
                 </div>
                 
-                {/* Tombol Aksi */}
-                <div className="p-4 bg-gray-50/50 border-t flex gap-2">
-                  <button onClick={() => handleEditClick(p)} className="flex-1 bg-white border border-gray-200 py-2 rounded-xl font-bold text-[10px] uppercase hover:bg-gray-900 hover:text-white transition-all shadow-sm">✎ Edit</button>
-                  <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 py-2 rounded-xl font-bold text-[10px] uppercase hover:bg-red-600 hover:text-white transition-all shadow-sm">🗑 Hapus</button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-                </div>
-                
-                {/* Tombol Aksi */}
                 <div className="p-4 bg-gray-50/50 border-t flex gap-2">
                   <button onClick={() => handleEditClick(p)} className="flex-1 bg-white border border-gray-200 py-2 rounded-xl font-bold text-[10px] uppercase hover:bg-gray-900 hover:text-white transition-all shadow-sm">✎ Edit</button>
                   <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 py-2 rounded-xl font-bold text-[10px] uppercase hover:bg-red-600 hover:text-white transition-all shadow-sm">🗑 Hapus</button>
@@ -452,7 +431,6 @@ export default function AdminProducts() {
           })}
         </div>
       </div>
-    </div>
 
       {/* MODAL PRODUK */}
       {showModal && (
@@ -464,6 +442,7 @@ export default function AdminProducts() {
             </h2>
       
             <form onSubmit={handleSaveProduct} className="space-y-6">
+              {/* ... Isi form tetap sama ... */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Nama Produk</label>
                 <input 
