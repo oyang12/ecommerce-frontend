@@ -22,46 +22,40 @@ export default function LoginPage() {
       const data = await res.json();
       const serverMessage = data.message ? data.message.toLowerCase() : "";
 
-      // --- LOGIKA SESUAI URUTAN PERMINTAANMU ---
+      // --- LOGIKA VALIDASI ANTI-BENTROK ---
 
-      // 1. CEK USER/EMAIL TERLEBIH DAHULU
-      // Karena backend kirim 401, kita cek kata kunci di dalam pesannya
-      if (
-        res.status === 404 || 
-        serverMessage.includes("user") || 
-        serverMessage.includes("email") || 
-        serverMessage.includes("not found")
-      ) {
-        setError("Email atau user belum terdaftar.");
-        return; 
-      }
-
-      // 2. JIKA USER ADA, CEK PASSWORD
-      if (
-        res.status === 401 || 
-        serverMessage.includes("password") || 
-        serverMessage.includes("wrong")
-      ) {
-        setError("Password yang kamu masukkan salah.");
-        return;
-      }
-
-      // 3. JIKA LOGIN BERHASIL (Status 200/OK)
+      // 1. JIKA LOGIN BERHASIL (Status 200/OK)
       if (res.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user_session", JSON.stringify(data.user));
 
         alert(`Login Berhasil! Selamat datang ${data.user.name}`);
 
-        // 4. CEK ROLE UNTUK REDIRECT
+        // Redirect sesuai role database
         if (data.user.role === "admin") {
-          router.push("/admin/products"); //
+          router.push("/admin/products");
         } else if (data.user.role === "customer") {
-          router.push("/user"); //
+          router.push("/user");
         } else {
           router.push("/");
         }
-      } else {
+        return;
+      }
+
+      // 2. CEK PASSWORD SALAH (Prioritas Jika Status 401)
+      // Kita cek apakah pesan dari server mengandung kata kunci password
+      if (serverMessage.includes("password") || serverMessage.includes("wrong") || serverMessage.includes("invalid")) {
+        setError("Password yang kamu masukkan salah.");
+      } 
+      
+      // 3. CEK USER TIDAK TERDAFTAR
+      // Jika bukan masalah password, dan mengandung kata user/email atau status 404
+      else if (res.status === 404 || serverMessage.includes("user") || serverMessage.includes("found") || serverMessage.includes("email")) {
+        setError("Email atau user belum terdaftar.");
+      }
+
+      // 4. ERROR CADANGAN
+      else {
         setError(data.message || "Terjadi kesalahan pada sistem.");
       }
 
@@ -69,7 +63,7 @@ export default function LoginPage() {
       setError("Gagal terhubung ke server Backend");
     }
   };
-
+  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
       <form onSubmit={handleLogin} className="p-10 bg-white shadow-2xl rounded-[2.5rem] w-full max-w-md border border-gray-100">
