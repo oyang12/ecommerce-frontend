@@ -166,27 +166,20 @@ export default function AdminProducts() {
           slug: data.slug,
           price: data.price,
           stock: data.stock,
-          // LOGIKA BARU: Ambil dari DB, jika NULL/kosong jadikan 0
           disc: data.disc || 0, 
           description: data.description || "",
           status: data.status || "Active",
         });
         setEditId(data.id);
         
-        // --- MEMULIHKAN KODE FOTO DARI "KODING ADMIN MANTAP" ---
-        // Logika untuk menampilkan kembali foto-foto lama dari database (menggunakan .image)
         const formattedImages = (data.images || []).map(img => {
-          // Ambil nama file langsung dari kolom 'image' sesuai struktur database
           const fileName = img.image || ""; 
-          
           return {
             ...img,
-            // Gabungkan langsung dengan STORAGE_URL agar preview muncul
             url: `${STORAGE_URL}${fileName}` 
           };
         });
-        setExistingImages(formattedImages); // Masukkan ke state existingImages
-        // ------------------------------------------------------
+        setExistingImages(formattedImages); 
 
         setIsEdit(true);
         setShowModal(true);
@@ -198,14 +191,10 @@ export default function AdminProducts() {
     }
   };
 
-  // BAGIAN YANG DIPERBARUI SESUAI LOGIKA YANG BERHASIL
   const handleSaveProduct = async (e) => {
     e.preventDefault();
     setLoading(true);
     const token = localStorage.getItem("token");
-
-    // LOGIKA PROTEKSI DISKON:
-    // Jika kolom disc kosong/tidak diisi, otomatis kita set ke 0 agar tidak error di DB
     const finalDisc = formData.disc && formData.disc !== "" ? formData.disc : 0;
 
     const dataToSend = new FormData();
@@ -213,35 +202,31 @@ export default function AdminProducts() {
     dataToSend.append("slug", formData.slug);
     dataToSend.append("price", formData.price);
     dataToSend.append("stock", formData.stock);
-    dataToSend.append("disc", finalDisc); // Mengirim nilai diskon (angka atau 0)
+    dataToSend.append("disc", finalDisc);
     dataToSend.append("description", formData.description || "");
     dataToSend.append("status", formData.status);
 
-    // TETAP MENGGUNAKAN LOGIKA FOTO DARI "KODING ADMIN MANTAP"
     if (selectedFiles.length > 0) {
       for (let i = 0; i < selectedFiles.length; i++) {
-        // Mengirim array foto ke backend
         dataToSend.append("images[]", selectedFiles[i]); 
       }
     }
 
-    // Penanganan Update vs Tambah Baru
     const url = isEdit ? `${API_URL}/${editId}` : API_URL;
     if (isEdit) {
-      // Laravel membutuhkan _method PUT jika dikirim via FormData (POST)
       dataToSend.append("_method", "PUT");
     }
 
     try {
       const res = await fetch(url, {
-        method: "POST", // Selalu POST karena FormData tidak support PUT murni di beberapa server
+        method: "POST", 
         headers: { "Authorization": `Bearer ${token}` },
         body: dataToSend
       });
 
       if (res.ok) {
         closeModal();
-        fetchProducts(); // Refresh data tabel & statistik
+        fetchProducts();
       } else {
         const errData = await res.json();
         alert("Gagal menyimpan: " + JSON.stringify(errData));
@@ -296,15 +281,12 @@ export default function AdminProducts() {
               <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Total Produk</p>
               <h2 className="text-3xl font-black text-gray-900 mt-1">{products.length}</h2>
             </div>
-            {/* 2. Stok Menipis (Logika Baru: <= 20) */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Stok Menipis</p>
-              <h2 className="text-3xl font-black text-yellow-500 mt-1"> {/* UBAH KE YELLOW */}
+              <h2 className="text-3xl font-black text-yellow-500 mt-1">
                 {products.filter(p => p.stock > 0 && p.stock <= 20).length}
               </h2>
             </div>
-            
-            {/* 3. Stok Habis (Logika: === 0) */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Stok Habis</p>
               <h2 className="text-3xl font-black text-red-600 mt-1">
@@ -362,7 +344,6 @@ export default function AdminProducts() {
         {/* GRID PRODUK */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((p) => {
-            // LOGIKA DISKON: Hitung harga akhir jika disc > 0
             const hasDiscount = p.disc && Number(p.disc) > 0;
             const finalPrice = hasDiscount 
               ? Number(p.price) - (Number(p.price) * Number(p.disc) / 100) 
@@ -370,20 +351,16 @@ export default function AdminProducts() {
         
             return (
               <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300">
-                
-                {/* BADGE DISKON */}
                 {hasDiscount && (
                   <div className="absolute top-4 left-12 z-30 bg-red-600 text-white px-2 py-1 rounded-lg text-[9px] font-black uppercase shadow-lg">
                     -{p.disc}%
                   </div>
                 )}
-        
                 <input 
                   type="checkbox" className="absolute top-4 left-4 z-30 w-5 h-5 accent-blue-600 cursor-pointer"
                   checked={selectedProductIds.includes(p.id)}
                   onChange={(e) => e.target.checked ? setSelectedProductIds([...selectedProductIds, p.id]) : setSelectedProductIds(selectedProductIds.filter(id => id !== p.id))}
                 />
-        
                 <button 
                   onClick={() => toggleStatus(p)}
                   className={`absolute top-4 right-4 z-30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm transition-all hover:scale-105 active:scale-95 ${
@@ -392,7 +369,6 @@ export default function AdminProducts() {
                 >
                   {p.status || "Active"}
                 </button>
-        
                 <div className="aspect-[4/3] overflow-hidden bg-gray-100">
                   <img 
                     src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : "https://via.placeholder.com/400x300"} 
@@ -400,13 +376,11 @@ export default function AdminProducts() {
                     alt={p.name}
                   />
                 </div>
-        
                 <div className="p-5 pb-0">
                   <h3 className="font-bold text-gray-800 uppercase truncate">{p.name}</h3>
                   <p className="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed h-[32px]">
                     {p.description || "Tidak ada deskripsi produk."}
                   </p>
-        
                   <div className="flex justify-between items-end mt-4">
                     <div>
                       {hasDiscount ? (
@@ -424,7 +398,6 @@ export default function AdminProducts() {
                         </p>
                       )}
                     </div>
-        
                     <div className="flex flex-col items-end">
                       {hasDiscount && (
                         <span className="text-[9px] font-bold text-red-500 uppercase mb-1">
@@ -439,87 +412,68 @@ export default function AdminProducts() {
                     </div>
                   </div>
                 </div>
-        
                 <div className="p-4 bg-gray-50 border-t flex gap-2 mt-4">
                   <button onClick={() => handleEditClick(p)} className="flex-1 bg-white border border-gray-200 py-2 rounded-xl font-bold text-xs hover:bg-gray-900 hover:text-white transition-all">✎ Edit</button>
                   <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 py-2 rounded-xl font-bold text-xs hover:bg-red-600 hover:text-white transition-all">🗑 Hapus</button>
                 </div>
               </div>
-            ); // Penutup Return
-          })} {/* Penutup Map (PENTING: Tanda ini sering tertinggal) */}
-</div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* MODAL PRODUK (TAMBAH / EDIT) */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-[40px] p-10 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[95vh] border border-gray-100">
-            
-            {/* Header Modal */}
             <h2 className="text-3xl font-black mb-8 uppercase tracking-tighter text-gray-900 flex items-center gap-3">
               <span className="w-2 h-8 bg-blue-600 rounded-full"></span>
               {isEdit ? "Update Produk" : "Produk Baru"}
             </h2>
       
             <form onSubmit={handleSaveProduct} className="space-y-6">
-              
-              {/* Nama Produk */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Nama Produk</label>
                 <input 
-                  type="text" 
-                  placeholder="Masukkan nama produk..."
+                  type="text" placeholder="Masukkan nama produk..."
                   className="w-full border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-blue-400 transition-all font-bold text-gray-700 placeholder:font-normal" 
-                  value={formData.name} 
-                  onChange={handleNameChange} 
-                  required 
+                  value={formData.name} onChange={handleNameChange} required 
                 />
               </div>
       
-              {/* Harga & Stok (Grid 2 Kolom) */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Harga (Rp)</label>
                   <input 
-                    type="number" 
-                    placeholder="0"
+                    type="number" placeholder="0"
                     className="w-full border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-blue-400 transition-all font-bold text-gray-700" 
-                    value={formData.price} 
-                    onChange={(e) => setFormData({...formData, price: e.target.value})} 
-                    required 
+                    value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required 
                   />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Stok</label>
                   <input 
-                    type="number" 
-                    placeholder="0"
+                    type="number" placeholder="0"
                     className="w-full border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-blue-400 transition-all font-bold text-gray-700" 
-                    value={formData.stock} 
-                    onChange={(e) => setFormData({...formData, stock: e.target.value})} 
-                    required 
+                    value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} required 
                   />
                 </div>
               </div>
       
-              {/* Diskon & Status (Grid 2 Kolom) */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-blue-500 ml-1">Diskon (%)</label>
                   <input 
-                    type="number" 
-                    step="0.01"
-                    placeholder="0"
+                    type="number" step="0.01" placeholder="0"
                     className="w-full border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-blue-400 transition-all font-black text-blue-600 bg-blue-50/30" 
-                    value={formData.disc} 
-                    onChange={(e) => setFormData({...formData, disc: e.target.value})} 
+                    value={formData.disc} onChange={(e) => setFormData({...formData, disc: e.target.value})} 
                   />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Status Tampil</label>
                   <select 
                     className="w-full border-2 border-gray-100 p-4 rounded-2xl font-bold bg-white outline-none focus:border-blue-400 transition-all appearance-none cursor-pointer" 
-                    value={formData.status} 
-                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                    value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}
                   >
                     <option value="Active">Active</option>
                     <option value="Draft">Draft</option>
@@ -527,18 +481,15 @@ export default function AdminProducts() {
                 </div>
               </div>
       
-              {/* Deskripsi */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Deskripsi Produk</label>
                 <textarea 
                   placeholder="Tulis detail produk di sini..."
                   className="w-full border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-blue-400 transition-all font-medium text-gray-600 min-h-[100px] resize-none" 
-                  value={formData.description} 
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})}
                 ></textarea>
               </div>
               
-              {/* Upload Foto & Gallery */}
               <div className="border-t border-dashed pt-6">
                 {isEdit && existingImages.length > 0 && (
                   <div className="grid grid-cols-4 gap-3 mb-6">
@@ -546,12 +497,9 @@ export default function AdminProducts() {
                       <div key={img.id} className="relative aspect-square rounded-2xl overflow-hidden border-2 border-gray-50 group">
                         <img src={img.url} className="w-full h-full object-cover" alt="existing" />
                         <button 
-                          type="button" 
-                          onClick={() => handleDeleteExistingImage(img.id)} 
+                          type="button" onClick={() => handleDeleteExistingImage(img.id)} 
                           className="absolute inset-0 bg-red-600/80 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center font-black text-[10px] uppercase"
-                        >
-                          Hapus
-                        </button>
+                        >Hapus</button>
                       </div>
                     ))}
                   </div>
@@ -559,49 +507,37 @@ export default function AdminProducts() {
       
                 <input type="file" multiple accept="image/*" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
                 <button 
-                  type="button" 
-                  onClick={() => fileInputRef.current.click()} 
+                  type="button" onClick={() => fileInputRef.current.click()} 
                   className="w-full border-2 border-dashed border-gray-200 p-6 rounded-[25px] bg-gray-50/50 text-gray-400 font-black text-[11px] uppercase tracking-widest hover:bg-blue-50 hover:border-blue-200 hover:text-blue-500 transition-all flex flex-col items-center gap-2"
                 >
-                  <span className="text-2xl">+</span>
-                  Pilih Foto Produk
+                  <span className="text-2xl">+</span> Pilih Foto Produk
                 </button>
       
-                {/* Preview Foto Baru */}
                 <div className="grid grid-cols-4 gap-3 mt-4">
                   {previewUrls.map((url, index) => (
                     <div key={index} className="relative aspect-square rounded-2xl overflow-hidden border-2 border-blue-100 group">
                       <img src={url} className="w-full h-full object-cover" alt="preview" />
                       <button 
-                        type="button" 
-                        onClick={() => handleRemovePreview(index)} 
+                        type="button" onClick={() => handleRemovePreview(index)} 
                         className="absolute top-1 right-1 bg-black text-white rounded-full w-6 h-6 text-xs flex items-center justify-center hover:bg-red-600 transition-colors"
-                      >
-                        ✕
-                      </button>
+                      >✕</button>
                     </div>
                   ))}
                 </div>
               </div>
       
-              {/* Footer Tombol Action */}
               <div className="flex items-center justify-end gap-6 pt-8 border-t border-gray-50">
                 <button 
-                  type="button" 
-                  onClick={closeModal} 
+                  type="button" onClick={closeModal} 
                   className="text-[11px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-900 transition-colors"
-                >
-                  Batal
-                </button>
+                >Batal</button>
                 <button 
-                  type="submit" 
-                  disabled={loading} 
+                  type="submit" disabled={loading} 
                   className="bg-gray-900 text-white px-10 py-4 rounded-[20px] font-black uppercase text-[11px] tracking-[0.15em] hover:bg-blue-600 hover:shadow-xl hover:shadow-blue-200 transition-all active:scale-95 disabled:bg-gray-200 disabled:cursor-not-allowed"
                 >
                   {loading ? "Sabar Ya..." : "Simpan Produk"}
                 </button>
               </div>
-      
             </form>
           </div>
         </div>
