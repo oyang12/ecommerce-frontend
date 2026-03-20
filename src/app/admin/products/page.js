@@ -165,18 +165,12 @@ export default function AdminProducts() {
           slug: data.slug,
           price: data.price,
           stock: data.stock,
+          disc: data.disc || 0, // Ambil dari DB, jika NULL jadikan 0
           description: data.description || "",
           status: data.status || "Active",
         });
+        // ... sisa kode existingImages tetap sama ...
         setEditId(data.id);
-        const formattedImages = (data.images || []).map(img => {
-          const fileName = img.image || ""; 
-          return {
-            ...img,
-            url: `${STORAGE_URL}${fileName}` 
-          };
-        });
-        setExistingImages(formattedImages);
         setIsEdit(true);
         setShowModal(true);
       }
@@ -192,32 +186,37 @@ export default function AdminProducts() {
     e.preventDefault();
     setLoading(true);
     const token = localStorage.getItem("token");
-
+  
+    // LOGIKA PROTEKSI DISKON: 
+    // Jika disc kosong, undefined, atau string kosong, ubah jadi 0
+    const finalDisc = formData.disc && formData.disc !== "" ? formData.disc : 0;
+  
     const dataToSend = new FormData();
     dataToSend.append("name", formData.name);
     dataToSend.append("slug", formData.slug);
     dataToSend.append("price", formData.price);
     dataToSend.append("stock", formData.stock);
+    dataToSend.append("disc", finalDisc); // Gunakan variabel finalDisc di sini
     dataToSend.append("description", formData.description || "");
     dataToSend.append("status", formData.status);
-
-    // Menggunakan loop for seperti kode handleAddProduct yang kamu berikan
+  
+    // Bagian pengiriman gambar tetap sama
     if (selectedFiles.length > 0) {
       for (let i = 0; i < selectedFiles.length; i++) {
         dataToSend.append("images[]", selectedFiles[i]); 
       }
     }
-
+  
     const url = isEdit ? `${API_URL}/${editId}` : API_URL;
     if (isEdit) dataToSend.append("_method", "PUT");
-
+  
     try {
       const res = await fetch(url, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` },
         body: dataToSend
       });
-
+  
       if (res.ok) {
         alert(isEdit ? "Produk Berhasil Diperbarui!" : "Produk Berhasil Ditambah!");
         closeModal();
