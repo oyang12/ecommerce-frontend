@@ -389,57 +389,159 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* MODAL PRODUK (TAMBAH / EDIT) */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
-            <h2 className="text-2xl font-black mb-6 uppercase tracking-tight text-gray-900">{isEdit ? "Update Produk" : "Produk Baru"}</h2>
-            <form onSubmit={handleSaveProduct} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Nama Produk</label>
-                <input type="text" className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400" value={formData.name} onChange={handleNameChange} required />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <input type="number" placeholder="Harga" className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required />
-                <input type="number" placeholder="Stok" className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400" value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} required />
-              </div>
-              <select className="w-full border-2 border-gray-100 p-3 rounded-xl font-bold bg-white" value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})}>
-                <option value="Active">Active</option>
-                <option value="Draft">Draft</option>
-              </select>
-              <textarea placeholder="Deskripsi" className="w-full border-2 border-gray-100 p-3 rounded-xl outline-none focus:border-blue-400" rows="3" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})}></textarea>
+          <div className="bg-white rounded-[40px] p-10 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[95vh] border border-gray-100">
+            
+            {/* Header Modal */}
+            <h2 className="text-3xl font-black mb-8 uppercase tracking-tighter text-gray-900 flex items-center gap-3">
+              <span className="w-2 h-8 bg-blue-600 rounded-full"></span>
+              {isEdit ? "Update Produk" : "Produk Baru"}
+            </h2>
+      
+            <form onSubmit={handleSaveProduct} className="space-y-6">
               
-              <div className="border-t pt-4">
+              {/* Nama Produk */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Nama Produk</label>
+                <input 
+                  type="text" 
+                  placeholder="Masukkan nama produk..."
+                  className="w-full border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-blue-400 transition-all font-bold text-gray-700 placeholder:font-normal" 
+                  value={formData.name} 
+                  onChange={handleNameChange} 
+                  required 
+                />
+              </div>
+      
+              {/* Harga & Stok (Grid 2 Kolom) */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Harga (Rp)</label>
+                  <input 
+                    type="number" 
+                    placeholder="0"
+                    className="w-full border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-blue-400 transition-all font-bold text-gray-700" 
+                    value={formData.price} 
+                    onChange={(e) => setFormData({...formData, price: e.target.value})} 
+                    required 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Stok</label>
+                  <input 
+                    type="number" 
+                    placeholder="0"
+                    className="w-full border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-blue-400 transition-all font-bold text-gray-700" 
+                    value={formData.stock} 
+                    onChange={(e) => setFormData({...formData, stock: e.target.value})} 
+                    required 
+                  />
+                </div>
+              </div>
+      
+              {/* Diskon & Status (Grid 2 Kolom) */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-blue-500 ml-1">Diskon (%)</label>
+                  <input 
+                    type="number" 
+                    step="0.01"
+                    placeholder="0"
+                    className="w-full border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-blue-400 transition-all font-black text-blue-600 bg-blue-50/30" 
+                    value={formData.disc} 
+                    onChange={(e) => setFormData({...formData, disc: e.target.value})} 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Status Tampil</label>
+                  <select 
+                    className="w-full border-2 border-gray-100 p-4 rounded-2xl font-bold bg-white outline-none focus:border-blue-400 transition-all appearance-none cursor-pointer" 
+                    value={formData.status} 
+                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Draft">Draft</option>
+                  </select>
+                </div>
+              </div>
+      
+              {/* Deskripsi */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Deskripsi Produk</label>
+                <textarea 
+                  placeholder="Tulis detail produk di sini..."
+                  className="w-full border-2 border-gray-100 p-4 rounded-2xl outline-none focus:border-blue-400 transition-all font-medium text-gray-600 min-h-[100px] resize-none" 
+                  value={formData.description} 
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                ></textarea>
+              </div>
+              
+              {/* Upload Foto & Gallery */}
+              <div className="border-t border-dashed pt-6">
                 {isEdit && existingImages.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2 mb-4">
+                  <div className="grid grid-cols-4 gap-3 mb-6">
                     {existingImages.map((img) => (
-                      <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden border">
+                      <div key={img.id} className="relative aspect-square rounded-2xl overflow-hidden border-2 border-gray-50 group">
                         <img src={img.url} className="w-full h-full object-cover" alt="existing" />
-                        <button type="button" onClick={() => handleDeleteExistingImage(img.id)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-[10px]">✕</button>
+                        <button 
+                          type="button" 
+                          onClick={() => handleDeleteExistingImage(img.id)} 
+                          className="absolute inset-0 bg-red-600/80 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center font-black text-[10px] uppercase"
+                        >
+                          Hapus
+                        </button>
                       </div>
                     ))}
                   </div>
                 )}
+      
                 <input type="file" multiple accept="image/*" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
-                <button type="button" onClick={() => fileInputRef.current.click()} className="w-full border-2 border-dashed p-4 rounded-2xl bg-gray-50 text-gray-500 font-bold text-xs uppercase hover:bg-blue-50 transition-all">
-                  + Pilih Foto Produk
+                <button 
+                  type="button" 
+                  onClick={() => fileInputRef.current.click()} 
+                  className="w-full border-2 border-dashed border-gray-200 p-6 rounded-[25px] bg-gray-50/50 text-gray-400 font-black text-[11px] uppercase tracking-widest hover:bg-blue-50 hover:border-blue-200 hover:text-blue-500 transition-all flex flex-col items-center gap-2"
+                >
+                  <span className="text-2xl">+</span>
+                  Pilih Foto Produk
                 </button>
-                <div className="grid grid-cols-4 gap-2 mt-4">
+      
+                {/* Preview Foto Baru */}
+                <div className="grid grid-cols-4 gap-3 mt-4">
                   {previewUrls.map((url, index) => (
-                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden border">
+                    <div key={index} className="relative aspect-square rounded-2xl overflow-hidden border-2 border-blue-100 group">
                       <img src={url} className="w-full h-full object-cover" alt="preview" />
-                      <button type="button" onClick={() => handleRemovePreview(index)} className="absolute top-1 right-1 bg-black text-white rounded-full w-5 h-5 text-[10px]">✕</button>
+                      <button 
+                        type="button" 
+                        onClick={() => handleRemovePreview(index)} 
+                        className="absolute top-1 right-1 bg-black text-white rounded-full w-6 h-6 text-xs flex items-center justify-center hover:bg-red-600 transition-colors"
+                      >
+                        ✕
+                      </button>
                     </div>
                   ))}
                 </div>
               </div>
-
-              <div className="flex justify-end gap-3 pt-6 border-t">
-                <button type="button" onClick={closeModal} className="px-6 font-bold text-gray-400 uppercase text-xs">Batal</button>
-                <button type="submit" disabled={loading} className="bg-gray-900 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg active:scale-95 text-xs uppercase">
-                  {loading ? "Memproses..." : "Simpan Produk"}
+      
+              {/* Footer Tombol Action */}
+              <div className="flex items-center justify-end gap-6 pt-8 border-t border-gray-50">
+                <button 
+                  type="button" 
+                  onClick={closeModal} 
+                  className="text-[11px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-900 transition-colors"
+                >
+                  Batal
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="bg-gray-900 text-white px-10 py-4 rounded-[20px] font-black uppercase text-[11px] tracking-[0.15em] hover:bg-blue-600 hover:shadow-xl hover:shadow-blue-200 transition-all active:scale-95 disabled:bg-gray-200 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Sabar Ya..." : "Simpan Produk"}
                 </button>
               </div>
+      
             </form>
           </div>
         </div>
