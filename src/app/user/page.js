@@ -8,15 +8,16 @@ export default function UserDashboard() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Simulasi pengecekan login (bisa diganti dengan logic Token/Session asli nanti)
   useEffect(() => {
-    const checkLogin = async () => {
+    const checkLogin = () => {
       try {
-        // Anggap saja kita mengambil data user dummy dari localStorage atau API
-        const savedUser = localStorage.getItem('user_session');
-        if (savedUser) {
-          setUserData(JSON.parse(savedUser));
-          setIsLoggedIn(true);
+        // PERBAIKAN: Cek apakah window/localStorage tersedia sebelum diakses
+        if (typeof window !== 'undefined') {
+          const savedUser = localStorage.getItem('user_session');
+          if (savedUser) {
+            setUserData(JSON.parse(savedUser));
+            setIsLoggedIn(true);
+          }
         }
       } catch (err) {
         console.error("Gagal mengecek sesi:", err);
@@ -26,6 +27,14 @@ export default function UserDashboard() {
     };
     checkLogin();
   }, []);
+
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user_session');
+      // Gunakan router atau refresh manual yang aman
+      window.location.href = '/user'; 
+    }
+  };
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -78,7 +87,7 @@ export default function UserDashboard() {
             </div>
           </div>
           <button 
-            onClick={() => { localStorage.removeItem('user_session'); window.location.reload(); }}
+            onClick={handleLogout}
             className="px-8 py-3 bg-white border border-gray-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 hover:border-red-100 transition-all shadow-sm"
           >
             Logout
@@ -88,7 +97,6 @@ export default function UserDashboard() {
         {/* DASHBOARD GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Samping: Info Akun */}
           <div className="lg:col-span-1 space-y-4">
             <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
               <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 border-b border-gray-50 pb-4">Info Akun</h3>
@@ -105,14 +113,12 @@ export default function UserDashboard() {
             </div>
           </div>
 
-          {/* Utama: Riwayat Pesanan */}
           <div className="lg:col-span-2 space-y-6">
             <h3 className="text-xs font-black uppercase tracking-widest text-gray-900 flex items-center gap-2">
               <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
               Pesanan Terakhir
             </h3>
             
-            {/* Card Pesanan (Dummy List) */}
             {[1, 2].map((item) => (
               <div key={item} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-blue-200 transition-all">
                 <div className="flex items-center gap-4">
@@ -133,9 +139,7 @@ export default function UserDashboard() {
               </div>
             ))}
           </div>
-
         </div>
-
       </div>
     </div>
   );
