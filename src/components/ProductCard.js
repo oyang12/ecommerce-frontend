@@ -25,7 +25,7 @@ export default function ProductCard({ p }) {
         </div>
       )}
 
-      {/* BADGE DISKON - Muncul hanya jika ada diskon */}
+      {/* BADGE DISKON */}
       {hasDiscount && (
         <div className="absolute top-4 left-4 z-30 bg-red-600 text-white px-2 py-1 rounded-lg text-[10px] font-black uppercase shadow-md">
           -{discountPercent}%
@@ -42,16 +42,15 @@ export default function ProductCard({ p }) {
         />
       </div>
 
-      {/* CONTENT */}
+      {/* CONTENT (TANPA DESKRIPSI) */}
       <div className="p-5 flex-grow flex flex-col">
-        <div className="mb-4">
-          <h3 className="font-bold text-gray-800 uppercase truncate text-sm">{p.name}</h3>
-          <p className="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed h-[32px]">
-            {p.description || "Tidak ada deskripsi produk."}
-          </p>
+        <div className="mb-2">
+          <h3 className="font-bold text-gray-800 uppercase truncate text-sm tracking-tight">
+            {p.name}
+          </h3>
         </div>
 
-        <div className="mt-auto flex justify-between items-end pt-4 border-t border-gray-50">
+        <div className="mt-auto flex justify-between items-end pt-3 border-t border-gray-50">
           <div className="flex flex-col">
             {/* Harga Asli (Coret) */}
             {hasDiscount ? (
