@@ -51,9 +51,9 @@ export default function ProductDetailPage() {
     </div>
   );
 
-  // --- LOGIKA HARGA & DISKON (SESUAI PRODUCT CARD) ---
+  // --- LOGIKA HARGA & DISKON ---
   const price = Number(product.price) || 0;
-  const discountPercent = Number(product.disc) || 0; 
+  const discountPercent = Number(product.disc) || 0; // Mengambil 'disc' dari database
   const hasDiscount = discountPercent > 0;
   const finalPrice = hasDiscount ? price - (price * discountPercent / 100) : price;
 
@@ -77,7 +77,7 @@ export default function ProductDetailPage() {
           
           {/* GALLERY SECTION */}
           <div className="relative space-y-4">
-            {/* Badge Diskon Mengambang */}
+            {/* 1. TEMPAT DISKON DI ATAS GAMBAR */}
             {hasDiscount && (
               <div className="absolute top-4 left-4 z-10 bg-red-600 text-white text-[11px] font-black px-3 py-1.5 rounded-xl shadow-xl animate-bounce">
                 -{discountPercent}% OFF
@@ -93,6 +93,7 @@ export default function ProductDetailPage() {
               />
             </div>
             
+            {/* THUMBNAILS */}
             <div className="grid grid-cols-4 gap-4">
               {product.thumbnail && (
                 <button 
@@ -102,21 +103,15 @@ export default function ProductDetailPage() {
                   <img src={`${STORAGE_URL}${product.thumbnail}`} className="w-full h-full object-cover" alt="main-thumb" />
                 </button>
               )}
-
-              {product.images && product.images
-                .filter(img => img.image !== product.thumbnail)
-                .map((img, idx) => (
-                  <button 
-                    key={idx}
-                    onClick={() => setActiveImage(img.image)}
-                    className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${
-                      activeImage === img.image ? 'border-gray-900 shadow-md scale-95' : 'border-transparent opacity-40 hover:opacity-100'
-                    }`}
-                  >
-                    <img src={`${STORAGE_URL}${img.image}`} className="w-full h-full object-cover" alt={`gallery-${idx}`} />
-                  </button>
-                ))
-              }
+              {product.images?.filter(img => img.image !== product.thumbnail).map((img, idx) => (
+                <button 
+                  key={idx}
+                  onClick={() => setActiveImage(img.image)}
+                  className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all ${activeImage === img.image ? 'border-gray-900 shadow-md scale-95' : 'border-transparent opacity-40 hover:opacity-100'}`}
+                >
+                  <img src={`${STORAGE_URL}${img.image}`} className="w-full h-full object-cover" alt={`gallery-${idx}`} />
+                </button>
+              ))}
             </div>
           </div>
 
@@ -139,16 +134,23 @@ export default function ProductDetailPage() {
             
             <div className="flex flex-col mb-10">
               <div className="flex items-end justify-between gap-3 border-b border-dashed border-gray-200 pb-8">
-                <div>
+                <div className="flex flex-col gap-1">
+                  {/* 2. TEMPAT DISKON & HARGA CORET */}
                   {hasDiscount && (
-                    <p className="text-sm font-bold text-gray-400 line-through mb-1">
-                      Rp {price.toLocaleString('id-ID')}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-gray-400 line-through">
+                        Rp {price.toLocaleString('id-ID')}
+                      </span>
+                      <span className="bg-red-100 text-red-600 text-[10px] font-black px-2 py-0.5 rounded-md uppercase">
+                        Save {discountPercent}%
+                      </span>
+                    </div>
                   )}
-                  <p className="text-5xl font-black text-blue-600 tracking-tighter">
+                  <p className="text-5xl font-black text-blue-600 tracking-tighter leading-none">
                     Rp {Math.floor(finalPrice).toLocaleString('id-ID')}
                   </p>
                 </div>
+
                 <div className="text-right">
                   <p className={`text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-2xl ${
                     product.stock === 0 ? 'bg-red-50 text-red-600' : 
@@ -163,7 +165,7 @@ export default function ProductDetailPage() {
             <div className="space-y-8">
               <div>
                 <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-4">Product Story</h3>
-                <p className="text-gray-600 leading-relaxed text-base md:text-lg">
+                <p className="text-gray-600 leading-relaxed text-base md:text-lg italic">
                   {product.description || "No description available for this item."}
                 </p>
               </div>
