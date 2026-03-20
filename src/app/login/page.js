@@ -22,12 +22,34 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        // Simpan token untuk CRUD nanti
+        // 1. Simpan Token & Session User
         localStorage.setItem("token", data.token);
-        alert("Login Berhasil!");
-        router.push("/"); // Pindah ke home
+        localStorage.setItem("user_session", JSON.stringify(data.user));
+
+        alert(`Login Berhasil! Selamat datang ${data.user.name}`);
+
+        // 2. Redirect Berdasarkan Role di Database
+        // Jika admin -> masuk ke folder admin/products
+        if (data.user.role === "admin") {
+          router.push("/admin/products");
+        } 
+        // Jika customer -> masuk ke folder user
+        else if (data.user.role === "customer") {
+          router.push("/user");
+        } 
+        else {
+          router.push("/");
+        }
       } else {
-        setError(data.message || "Email atau password salah");
+        // 3. Validasi Pesan Error Spesifik
+        // Backend biasanya mengirimkan pesan yang berbeda untuk tiap kasus
+        if (data.message.toLowerCase().includes("password")) {
+          setError("Password yang kamu masukkan salah.");
+        } else if (data.message.toLowerCase().includes("email") || data.message.toLowerCase().includes("user")) {
+          setError("Email atau user belum terdaftar.");
+        } else {
+          setError(data.message || "Terjadi kesalahan saat login");
+        }
       }
     } catch (err) {
       setError("Gagal terhubung ke server Backend");
@@ -35,37 +57,44 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-      <form onSubmit={handleLogin} className="p-8 bg-white shadow-xl rounded-2xl w-full max-w-md border border-gray-100">
-        <h2 className="text-3xl font-extrabold mb-8 text-center text-blue-600">MyStore Login</h2>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
+      <form onSubmit={handleLogin} className="p-10 bg-white shadow-2xl rounded-[2.5rem] w-full max-w-md border border-gray-100">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">MyStore Login</h2>
+          <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Masuk ke akun Anda</p>
+        </div>
         
-        {error && <div className="bg-red-50 text-red-500 p-3 rounded-lg mb-6 text-sm border border-red-100">{error}</div>}
+        {error && (
+          <div className="bg-red-50 text-red-600 p-4 rounded-2xl mb-6 text-xs font-bold border border-red-100 animate-pulse">
+            ⚠️ {error}
+          </div>
+        )}
         
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">Email Admin</label>
+        <div className="mb-5">
+          <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Email</label>
           <input
             type="email"
-            placeholder="admin@gmail.com"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            placeholder="contoh@mystore.com"
+            className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all font-medium text-black"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
 
-        <div className="mb-8">
-          <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
+        <div className="mb-10">
+          <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Password</label>
           <input
             type="password"
             placeholder="••••••••"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all font-medium text-black"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
 
-        <button type="submit" className="w-full bg-blue-600 text-white font-bold p-3 rounded-lg hover:bg-blue-700 transition duration-300 shadow-lg shadow-blue-200">
+        <button type="submit" className="w-full bg-[#0a0f1e] text-white font-black py-4 rounded-2xl hover:bg-blue-600 transition-all shadow-xl shadow-blue-100 active:scale-95 uppercase text-xs tracking-[0.2em]">
           Sign In
         </button>
       </form>
