@@ -350,7 +350,7 @@ export default function AdminProducts() {
               : Number(p.price);
         
             return (
-              <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300">
+              <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300 flex flex-col">
                 {hasDiscount && (
                   <div className="absolute top-4 left-12 z-30 bg-red-600 text-white px-2 py-1 rounded-lg text-[9px] font-black uppercase shadow-lg">
                     -{p.disc}%
@@ -376,13 +376,15 @@ export default function AdminProducts() {
                     alt={p.name}
                   />
                 </div>
-                <div className="p-5 pb-0">
+                <div className="p-5 flex-grow">
                   <h3 className="font-bold text-gray-800 uppercase truncate">{p.name}</h3>
                   <p className="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed h-[32px]">
                     {p.description || "Tidak ada deskripsi produk."}
                   </p>
+                  
                   <div className="flex justify-between items-end mt-4">
-                    <div>
+                    {/* Sisi Kiri: Harga */}
+                    <div className="flex flex-col justify-end h-[38px]">
                       {hasDiscount ? (
                         <>
                           <p className="text-gray-400 text-[10px] line-through leading-none mb-1">
@@ -393,18 +395,27 @@ export default function AdminProducts() {
                           </p>
                         </>
                       ) : (
-                        <p className="text-blue-600 font-black text-lg leading-none">
-                          Rp {Number(p.price).toLocaleString('id-ID')}
-                        </p>
+                        <>
+                          {/* Placeholder agar tinggi tetap konsisten */}
+                          <div className="h-[10px] mb-1"></div>
+                          <p className="text-blue-600 font-black text-lg leading-none">
+                            Rp {Number(p.price).toLocaleString('id-ID')}
+                          </p>
+                        </>
                       )}
                     </div>
-                    <div className="flex flex-col items-end">
-                      {hasDiscount && (
+        
+                    {/* Sisi Kanan: Info Diskon & Stok */}
+                    <div className="flex flex-col items-end h-[38px] justify-end">
+                      {hasDiscount ? (
                         <span className="text-[9px] font-bold text-red-500 uppercase mb-1">
                           Disc {p.disc}%
                         </span>
+                      ) : (
+                        /* Placeholder agar teks Stok tidak naik ke atas */
+                        <div className="h-[9px] mb-1"></div>
                       )}
-                      <span className={`text-[10px] font-bold uppercase ${
+                      <span className={`text-[10px] font-bold uppercase leading-none ${
                         p.stock === 0 ? 'text-red-600' : p.stock <= 20 ? 'text-yellow-500' : 'text-gray-400'
                       }`}>
                         Stok: {p.stock}
@@ -412,7 +423,8 @@ export default function AdminProducts() {
                     </div>
                   </div>
                 </div>
-                <div className="p-4 bg-gray-50 border-t flex gap-2 mt-4">
+                
+                <div className="p-4 bg-gray-50 border-t flex gap-2">
                   <button onClick={() => handleEditClick(p)} className="flex-1 bg-white border border-gray-200 py-2 rounded-xl font-bold text-xs hover:bg-gray-900 hover:text-white transition-all">✎ Edit</button>
                   <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 py-2 rounded-xl font-bold text-xs hover:bg-red-600 hover:text-white transition-all">🗑 Hapus</button>
                 </div>
@@ -420,7 +432,6 @@ export default function AdminProducts() {
             );
           })}
         </div>
-      </div>
 
       {/* MODAL PRODUK (TAMBAH / EDIT) */}
       {showModal && (
