@@ -20,19 +20,30 @@ export default function LoginPage() {
       });
 
       const data = await res.json();
+      const serverMessage = data.message ? data.message.toLowerCase() : "";
 
       // --- LOGIKA SESUAI URUTAN PERMINTAANMU ---
 
-      // 1. CEK USER/EMAIL (Status 404 = Not Found)
-      if (res.status === 404) {
+      // 1. CEK USER/EMAIL TERLEBIH DAHULU
+      // Karena backend kirim 401, kita cek kata kunci di dalam pesannya
+      if (
+        res.status === 404 || 
+        serverMessage.includes("user") || 
+        serverMessage.includes("email") || 
+        serverMessage.includes("not found")
+      ) {
         setError("Email atau user belum terdaftar.");
-        return; // Berhenti di sini
+        return; 
       }
 
-      // 2. CEK PASSWORD (Status 401 = Unauthorized)
-      if (res.status === 401) {
+      // 2. JIKA USER ADA, CEK PASSWORD
+      if (
+        res.status === 401 || 
+        serverMessage.includes("password") || 
+        serverMessage.includes("wrong")
+      ) {
         setError("Password yang kamu masukkan salah.");
-        return; // Berhenti di sini
+        return;
       }
 
       // 3. JIKA LOGIN BERHASIL (Status 200/OK)
@@ -44,14 +55,13 @@ export default function LoginPage() {
 
         // 4. CEK ROLE UNTUK REDIRECT
         if (data.user.role === "admin") {
-          router.push("/admin/products");
+          router.push("/admin/products"); //
         } else if (data.user.role === "customer") {
-          router.push("/user");
+          router.push("/user"); //
         } else {
           router.push("/");
         }
       } else {
-        // Error tidak terduga lainnya
         setError(data.message || "Terjadi kesalahan pada sistem.");
       }
 
@@ -60,7 +70,6 @@ export default function LoginPage() {
     }
   };
 
-  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
       <form onSubmit={handleLogin} className="p-10 bg-white shadow-2xl rounded-[2.5rem] w-full max-w-md border border-gray-100">
