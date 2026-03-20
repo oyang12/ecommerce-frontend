@@ -270,7 +270,7 @@ export default function AdminProducts() {
 
         {/* STATISTIK */}
         {!fetchLoading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Total Produk</p>
               <h2 className="text-3xl font-black text-gray-900 mt-1">{products.length}</h2>
