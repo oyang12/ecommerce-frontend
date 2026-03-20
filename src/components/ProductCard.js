@@ -41,7 +41,9 @@ export default function ProductCard({ p }) {
           <p className="text-blue-600 font-black text-lg">
             Rp {Number(p.price).toLocaleString('id-ID')}
           </p>
-          <span className={`text-[10px] font-bold uppercase ${p.stock < 5 ? 'text-orange-500' : 'text-gray-400'}`}>
+          <span className={`text-[10px] font-bold uppercase ${
+            p.stock === 0 ? 'text-red-600' : p.stock <= 20 ? 'text-orange-500' : 'text-gray-400'
+          }`}>
             Stok: {p.stock}
           </span>
         </div>
