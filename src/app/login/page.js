@@ -37,19 +37,22 @@ export default function LoginPage() {
           router.push("/");
         }
       } else {
-        // --- LOGIKA VALIDASI BERTAHAP ---
+        // --- LOGIKA VALIDASI BERTAHAP YANG DIPERTUJAM ---
         const serverMessage = data.message ? data.message.toLowerCase() : "";
 
-        // Tahap 1: Cek apakah user/email terdaftar
-        // Kita cek status 404 atau pesan yang mengandung kata 'user'/'email'/'found'
-        if (res.status === 404 || serverMessage.includes("email") || serverMessage.includes("user") || serverMessage.includes("found")) {
+        // Tahap 1: Cek apakah user benar-benar tidak ada
+        // Gunakan status 404 (Not Found) sebagai indikator utama email tidak ada
+        if (res.status === 404 || serverMessage.includes("not found") || serverMessage.includes("belum terdaftar")) {
           setError("Email atau user belum terdaftar.");
         } 
-        // Tahap 2: Jika email ada tapi password salah (biasanya status 401 Unauthorized)
+        
+        // Tahap 2: Jika statusnya 401 (Unauthorized), hampir pasti ini adalah masalah Password
+        // Karena budi@gmail.com ada di DB, backend seharusnya kirim 401 jika password salah
         else if (res.status === 401 || serverMessage.includes("password") || serverMessage.includes("wrong") || serverMessage.includes("invalid")) {
           setError("Password yang kamu masukkan salah.");
         } 
-        // Tahap 3: Error umum lainnya
+        
+        // Tahap 3: Error cadangan jika backend tidak kirim status code yang standar
         else {
           setError(data.message || "Terjadi kesalahan saat login");
         }
