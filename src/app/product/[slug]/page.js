@@ -11,8 +11,32 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(null);
 
-  const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+    useEffect(() => {
+      // Cek status login saat komponen mount
+      if (typeof window !== 'undefined') {
+        const savedUser = localStorage.getItem('user_session');
+        if (savedUser) {
+          setIsLoggedIn(true);
+        }
+      }
+    }, []);
+    
+    // Modifikasi fungsi handleOrder
+    const handleOrder = () => {
+      if (!isLoggedIn) {
+        alert("Silakan login terlebih dahulu untuk memesan produk.");
+        window.location.href = '/login'; // Arahkan ke halaman login
+        return;
+      }
+    
+      const message = `Halo Admin, saya tertarik dengan produk *${product.name}*...`;
+      window.open(`https://wa.me/628123456789?text=${encodeURIComponent(message)}`, '_blank');
+    };        
 
+
+  
+  const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
   useEffect(() => {
     if (!slug) return;
 
@@ -49,7 +73,7 @@ export default function ProductDetailPage() {
       </div>
     </div>
   );
-
+  
   // --- LOGIKA PERHITUNGAN HARGA ---
   const price = Number(product.price) || 0;
   // Pastikan mengambil field 'disc' atau 'discount' sesuai API
