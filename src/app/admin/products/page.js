@@ -359,7 +359,7 @@ export default function AdminProducts() {
           )}
         </div>
 
-        {/* GRID */}
+        {/* GRID PRODUK */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((p) => {
             // LOGIKA DISKON: Hitung harga akhir jika disc > 0
@@ -371,7 +371,7 @@ export default function AdminProducts() {
             return (
               <div key={p.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300">
                 
-                {/* BADGE DISKON: Muncul di pojok kiri atas foto */}
+                {/* BADGE DISKON */}
                 {hasDiscount && (
                   <div className="absolute top-4 left-12 z-30 bg-red-600 text-white px-2 py-1 rounded-lg text-[9px] font-black uppercase shadow-lg">
                     -{p.disc}%
@@ -409,7 +409,6 @@ export default function AdminProducts() {
         
                   <div className="flex justify-between items-end mt-4">
                     <div>
-                      {/* TAMPILAN HARGA */}
                       {hasDiscount ? (
                         <>
                           <p className="text-gray-400 text-[10px] line-through leading-none mb-1">
@@ -427,7 +426,6 @@ export default function AdminProducts() {
                     </div>
         
                     <div className="flex flex-col items-end">
-                      {/* INDIKATOR DISKON KECIL */}
                       {hasDiscount && (
                         <span className="text-[9px] font-bold text-red-500 uppercase mb-1">
                           Disc {p.disc}%
@@ -447,9 +445,9 @@ export default function AdminProducts() {
                   <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 py-2 rounded-xl font-bold text-xs hover:bg-red-600 hover:text-white transition-all">🗑 Hapus</button>
                 </div>
               </div>
-            );
-          })}
-        </div>
+            ); // Penutup Return
+          })} {/* Penutup Map (PENTING: Tanda ini sering tertinggal) */}
+</div>
 
       {/* MODAL PRODUK (TAMBAH / EDIT) */}
       {showModal && (
