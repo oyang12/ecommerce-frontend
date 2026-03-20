@@ -287,6 +287,12 @@ export default function AdminProducts() {
               <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Draft / Hidden</p>
               <h2 className="text-3xl font-black text-gray-400 mt-1">{products.filter(p => p.status === "Draft").length}</h2>
             </div>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Produk Diskon</p>
+              <h2 className="text-3xl font-black text-purple-600 mt-1">
+                {products.filter(p => p.discount_price > 0).length}
+              </h2>
+            </div>
           </div>
         )}
 
