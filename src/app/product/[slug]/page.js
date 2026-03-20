@@ -50,9 +50,10 @@ export default function ProductDetailPage() {
     </div>
   );
 
-  // LOGIKA HARGA DISKON
+  // --- LOGIKA PERHITUNGAN HARGA ---
   const price = Number(product.price) || 0;
-  const discountPercent = Number(product.disc) || 0;
+  // Pastikan mengambil field 'disc' atau 'discount' sesuai API
+  const discountPercent = Number(product.disc) || 0; 
   const hasDiscount = discountPercent > 0;
   const finalPrice = hasDiscount ? price - (price * discountPercent / 100) : price;
 
@@ -75,7 +76,14 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           
           {/* GALLERY SECTION */}
-          <div className="space-y-4">
+          <div className="relative space-y-4">
+            {/* Badge Diskon Mengambang di Foto (Opsional, seperti di gambar referensi) */}
+            {hasDiscount && (
+              <div className="absolute top-4 left-4 z-10 bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-lg shadow-lg">
+                -{discountPercent}%
+              </div>
+            )}
+
             <div className="aspect-square bg-white rounded-3xl overflow-hidden border border-gray-200 shadow-sm group">
               <img 
                 src={activeImage ? `${STORAGE_URL}${activeImage}` : "https://via.placeholder.com/600x600?text=No+Image"} 
@@ -85,7 +93,6 @@ export default function ProductDetailPage() {
             </div>
             
             <div className="grid grid-cols-4 gap-4">
-              {/* 1. Thumbnail Utama (Selalu Muncul) */}
               {product.thumbnail && (
                 <button 
                   onClick={() => setActiveImage(product.thumbnail)}
@@ -95,9 +102,8 @@ export default function ProductDetailPage() {
                 </button>
               )}
 
-              {/* 2. List gambar tambahan (HANYA render jika berbeda dengan thumbnail) */}
               {product.images && product.images
-                .filter(img => img.image !== product.thumbnail) // FILTER AGAR TIDAK GANDA
+                .filter(img => img.image !== product.thumbnail)
                 .map((img, idx) => (
                   <button 
                     key={idx}
@@ -123,38 +129,32 @@ export default function ProductDetailPage() {
             </h1>
             
             <div className="flex flex-col mb-8">
-              <div className="flex items-center gap-3">
-                <p className="text-3xl font-black text-gray-900">
-                  Rp {Math.floor(finalPrice).toLocaleString('id-ID')}
-                </p>
-                {hasDiscount && (
-                  <span className="bg-green-100 text-green-700 px-2 py-1 rounded-lg text-[10px] font-black uppercase">
-                    Ready Stok: {product.stock}
-                  </span>
-                )}
-              </div>
-              
-              {/* TAMPILAN DISKON & HARGA CORET */}
-              <div className="flex items-center gap-4 mt-2">
-                {hasDiscount && (
-                  <>
-                    <span className="text-gray-400 line-through text-sm font-bold">
+              {/* Baris Harga Utama & Stok */}
+              <div className="flex items-end justify-between gap-3 border-b border-gray-100 pb-4">
+                <div>
+                  {hasDiscount && (
+                    <p className="text-xs font-bold text-gray-400 line-through mb-1">
                       Rp {price.toLocaleString('id-ID')}
-                    </span>
-                    <span className="bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-black">
-                      -{discountPercent}% OFF
-                    </span>
-                  </>
-                )}
-                {!hasDiscount && (
-                   <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-100">
-                    Ready Stok: {product.stock}
-                   </span>
-                )}
+                    </p>
+                  )}
+                  <p className="text-4xl font-black text-blue-600">
+                    Rp {Math.floor(finalPrice).toLocaleString('id-ID')}
+                  </p>
+                </div>
+                <div className="text-right">
+                  {hasDiscount && (
+                    <p className="text-[10px] font-black text-red-500 uppercase tracking-tighter mb-1">
+                      Disc {discountPercent}%
+                    </p>
+                  )}
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${product.stock > 0 ? 'text-yellow-500' : 'text-red-500'}`}>
+                    Stok: {product.stock}
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-8 space-y-6">
+            <div className="space-y-6">
               <div>
                 <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Deskripsi Produk</h3>
                 <p className="text-gray-600 leading-relaxed italic text-sm md:text-base">
@@ -166,7 +166,7 @@ export default function ProductDetailPage() {
                 <button 
                   onClick={handleOrder}
                   disabled={product.stock <= 0}
-                  className="w-full bg-gray-900 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="w-full bg-[#0a0f1e] text-white py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-700 transition-all shadow-xl active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   Pesan Sekarang (WhatsApp)
                 </button>
