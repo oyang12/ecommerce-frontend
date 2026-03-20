@@ -1,23 +1,38 @@
 'use client';
 
-import Link from 'next/link'; // Import Link agar bisa diklik
+import Link from 'next/link';
 
 export default function ProductCard({ p }) {
-  // CONFIGURATION GAMBAR SAMA DENGAN SEBELUMNYA
   const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
   const FALLBACK_IMG = "https://via.placeholder.com/400x300?text=No+Image";
 
+  // LOGIKA HARGA & DISKON
+  const price = Number(p.price) || 0;
+  const discountPercent = Number(p.disc) || 0;
+  const hasDiscount = discountPercent > 0;
+  
+  const finalPrice = hasDiscount 
+    ? price - (price * discountPercent / 100) 
+    : price;
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300">
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative group hover:shadow-xl transition-all duration-300 flex flex-col">
       
-      {/* BADGE STATUS - STYLE SAMA */}
+      {/* BADGE STATUS (DRAFT/HIDDEN) */}
       {p.status !== "Active" && (
         <div className="absolute top-4 right-4 z-30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm bg-gray-100 text-gray-500 border border-gray-200">
           {p.status}
         </div>
       )}
 
-      {/* THUMBNAIL IMAGE - STYLE SAMA */}
+      {/* BADGE DISKON - Muncul hanya jika ada diskon */}
+      {hasDiscount && (
+        <div className="absolute top-4 left-4 z-30 bg-red-600 text-white px-2 py-1 rounded-lg text-[10px] font-black uppercase shadow-md">
+          -{discountPercent}%
+        </div>
+      )}
+
+      {/* THUMBNAIL IMAGE */}
       <div className="aspect-[4/3] overflow-hidden bg-gray-100 relative">
         <img 
           src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : FALLBACK_IMG} 
@@ -25,42 +40,56 @@ export default function ProductCard({ p }) {
           alt={p.name}
           onError={(e) => { e.target.src = FALLBACK_IMG; }}
         />
-        <div className="absolute bottom-0 left-0 right-0 h-10"></div>
       </div>
 
-      {/* CONTENT - STYLE SAMA */}
-      <div className="p-5 pb-0">
-        <h3 className="font-bold text-gray-800 uppercase truncate text-sm">{p.name}</h3>
-        
-        {/* DESKRIPSI - STYLE SAMA (line-clamp-2) */}
-        <p className="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed h-[32px]">
-          {p.description || "Tidak ada deskripsi produk."}
-        </p>
-
-        <div className="flex justify-between items-end mt-4">
-          <p className="text-blue-600 font-black text-lg">
-            Rp {Number(p.price).toLocaleString('id-ID')}
+      {/* CONTENT */}
+      <div className="p-5 flex-grow flex flex-col">
+        <div className="mb-4">
+          <h3 className="font-bold text-gray-800 uppercase truncate text-sm">{p.name}</h3>
+          <p className="text-gray-400 text-[11px] mt-1 line-clamp-2 leading-relaxed h-[32px]">
+            {p.description || "Tidak ada deskripsi produk."}
           </p>
-          <span className={`text-[10px] font-bold uppercase ${
-            p.stock === 0 ? 'text-red-600' : p.stock <= 20 ? 'text-yellow-500' : 'text-gray-400'
-          }`}>
-            Stok: {p.stock}
-          </span>
+        </div>
+
+        <div className="mt-auto flex justify-between items-end pt-4 border-t border-gray-50">
+          <div className="flex flex-col">
+            {/* Harga Asli (Coret) */}
+            {hasDiscount ? (
+              <span className="text-gray-400 text-[10px] line-through leading-none mb-1">
+                Rp {price.toLocaleString('id-ID')}
+              </span>
+            ) : null}
+            {/* Harga Final */}
+            <span className="text-blue-600 font-black text-lg leading-none">
+              Rp {Math.floor(finalPrice).toLocaleString('id-ID')}
+            </span>
+          </div>
+
+          <div className="text-right">
+            {hasDiscount ? (
+              <div className="text-[9px] font-bold text-red-500 uppercase mb-1">
+                PROMO UNTUNG
+              </div>
+            ) : null}
+            <div className={`text-[10px] font-bold uppercase ${
+              p.stock === 0 ? 'text-red-600' : p.stock <= 20 ? 'text-yellow-500' : 'text-gray-400'
+            }`}>
+              Stok: {p.stock}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* BUTTON ACTION - STYLE SAMA, FUNGSI KLIK DITAMBAHKAN */}
-      <div className="p-4 bg-gray-50 border-t flex gap-2 mt-4 pt-4 border-gray-100">
-        {/* TOMBOL DETAIL: Sekarang menggunakan Link ke slug produk, tapi visualnya sama */}
+      {/* BUTTON ACTION */}
+      <div className="p-4 bg-gray-50/50 border-t flex gap-2">
         <Link 
           href={`/product/${p.slug}`} 
-          className="flex-1 bg-white border border-gray-200 py-2.5 rounded-xl font-bold text-xs hover:bg-gray-900 hover:text-white transition-all uppercase tracking-widest text-center shadow-sm active:scale-95"
+          className="flex-1 bg-white border border-gray-200 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest text-center hover:bg-gray-900 hover:text-white transition-all shadow-sm active:scale-95"
         >
           Detail
         </Link>
         
-        {/* TOMBOL BELI: Visual sama, bisa kamu tambahkan fungsi onClick nanti */}
-        <button className="flex-1 bg-gray-900 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-blue-600 transition-all uppercase tracking-widest shadow-lg active:scale-95">
+        <button className="flex-1 bg-gray-900 text-white py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95">
           Beli
         </button>
       </div>
