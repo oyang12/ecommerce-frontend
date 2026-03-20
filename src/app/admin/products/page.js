@@ -451,7 +451,8 @@ export default function AdminProducts() {
             );
           })}
         </div>
-      
+      </div>
+    </div>
 
       {/* MODAL PRODUK */}
       {showModal && (
