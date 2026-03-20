@@ -20,20 +20,7 @@ export default function ProductDetailPage() {
           setIsLoggedIn(true);
         }
       }
-    }, []);
-    
-    // Modifikasi fungsi handleOrder
-    const handleOrder = () => {
-      if (!isLoggedIn) {
-        alert("Silakan login terlebih dahulu untuk memesan produk.");
-        window.location.href = '/login'; // Arahkan ke halaman login
-        return;
-      }
-    
-      const message = `Halo Admin, saya tertarik dengan produk *${product.name}*...`;
-      window.open(`https://wa.me/628123456789?text=${encodeURIComponent(message)}`, '_blank');
-    };        
-
+    }, []);      
 
   
   const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
@@ -81,8 +68,15 @@ export default function ProductDetailPage() {
   const hasDiscount = discountPercent > 0;
   const finalPrice = hasDiscount ? price - (price * discountPercent / 100) : price;
 
+  // Modifikasi fungsi handleOrder
   const handleOrder = () => {
-    const message = `Halo Admin, saya tertarik dengan produk *${product.name}* (Harga: Rp ${Math.floor(finalPrice).toLocaleString('id-ID')}). Apakah stok masih tersedia?`;
+    if (!isLoggedIn) {
+       alert("Silakan login terlebih dahulu untuk memesan produk.");
+      window.location.href = '/login'; // Arahkan ke halaman login
+      return;
+    }
+    
+    const message = `Halo Admin, saya tertarik dengan produk *${product.name}*...`;
     window.open(`https://wa.me/628123456789?text=${encodeURIComponent(message)}`, '_blank');
   };
 
