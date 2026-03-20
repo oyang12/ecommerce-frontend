@@ -51,7 +51,7 @@ export default function ProductDetailPage() {
   );
 
   // --- LOGIKA PERHITUNGAN HARGA ---
-  const price = Number(product.price) || 0;
+  const price = Number(p.price) || 0;
   // Pastikan mengambil field 'disc' atau 'discount' sesuai API
   const discountPercent = Number(p.disc) || 0; 
   const hasDiscount = discountPercent > 0;
