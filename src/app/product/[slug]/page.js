@@ -70,8 +70,8 @@ export default function ProductDetailPage() {
   // 🔥 GANTI HANDLE ORDER → ADD TO CART
   const handleOrder = () => {
     if (!isLoggedIn) {
-      alert("Silakan login terlebih dahulu untuk memesan produk.");
-      window.location.href = '/login';
+      // 🔥 trigger buka login popup global
+      window.dispatchEvent(new Event("openLogin"));
       return;
     }
 
