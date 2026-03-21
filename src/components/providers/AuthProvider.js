@@ -15,45 +15,42 @@ export default function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [redirectAfterLogin, setRedirectAfterLogin] = useState(null);
 
-  // 🔥 LOAD USER DARI LOCALSTORAGE
+  // 🔥 INIT USER (AUTO LOGIN)
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-
+    const storedUser = localStorage.getItem("user_session");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
-    } else {
-      setUser(null);
     }
-
     setLoading(false);
   }, []);
 
-  // 🔐 OPEN LOGIN + REDIRECT
+  // 🔐 OPEN LOGIN
   const openLogin = ({ redirect } = {}) => {
-    if (redirect) {
-      setRedirectAfterLogin(redirect);
-    }
+    if (redirect) setRedirectAfterLogin(redirect);
     setShowLogin(true);
   };
 
   const closeLogin = () => setShowLogin(false);
 
-  // ✅ LOGIN SUCCESS (DIPANGGIL DARI MODAL)
+  // ✅ LOGIN SUCCESS
   const loginSuccess = (userData) => {
-    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("user_session", JSON.stringify(userData));
     setUser(userData);
     setShowLogin(false);
 
-    // 🚀 REDIRECT SETELAH LOGIN
+    // 🚀 REDIRECT BALIK
     if (redirectAfterLogin) {
       window.location.href = redirectAfterLogin;
+      setRedirectAfterLogin(null);
     }
   };
 
   // 🚪 LOGOUT
   const logout = () => {
-    localStorage.removeItem("user");
+    localStorage.removeItem("user_session");
+    localStorage.removeItem("token");
     setUser(null);
+    window.location.href = "/";
   };
 
   return (
@@ -72,7 +69,7 @@ export default function AuthProvider({ children }) {
       <LoginModal
         isOpen={showLogin}
         onClose={closeLogin}
-        onSuccess={loginSuccess} // ⬅️ penting!
+        onSuccess={loginSuccess}
       />
     </AuthContext.Provider>
   );
