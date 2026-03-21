@@ -33,14 +33,15 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user_session");
+  localStorage.removeItem("token");
+  localStorage.removeItem("user_session");
 
-    // 🔥 TRIGGER UPDATE NAVBAR
-    window.dispatchEvent(new Event("authChanged"));
+  // 🔥 trigger update navbar
+  window.dispatchEvent(new Event("authChanged"));
 
-    router.push("/login");
-  };
+  // ✅ redirect ke homepage
+  router.push("/");
+};
 
   return (
     <nav className="bg-white shadow-md p-4">
