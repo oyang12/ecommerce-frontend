@@ -3,15 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuthModal"; // <-- pakai hook login modal, bukan session
+import { useAuth } from "@/components/providers/AuthProvider"; // ✅ FIX DI SINI
 
 export default function Navbar() {
   const [search, setSearch] = useState("");
   const [user, setUser] = useState(null);
   const router = useRouter();
-  const { openLogin } = useAuth(); // ✅ ambil dari modal hook
+  const { openLogin } = useAuth(); // ✅ sekarang aman
 
-  // Ambil user session untuk menu dinamis
   const loadUser = () => {
     const session = localStorage.getItem("user_session");
     setUser(session ? JSON.parse(session) : null);
@@ -38,12 +37,11 @@ export default function Navbar() {
   return (
     <nav className="bg-white shadow-md p-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* Logo */}
+        
         <Link href="/" className="text-2xl font-bold text-blue-600">
           MyStore
         </Link>
 
-        {/* Search */}
         <form onSubmit={handleSearch} className="flex w-1/2">
           <input
             type="text"
@@ -57,14 +55,13 @@ export default function Navbar() {
           </button>
         </form>
 
-        {/* Menu dinamis */}
         <div className="flex items-center gap-6 text-sm text-gray-700">
-          {/* BELUM LOGIN */}
+
           {!user && (
             <>
               <Link href="/register">Daftar</Link>
               <button
-                onClick={openLogin} // ✅ aman karena hook login modal
+                onClick={openLogin}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg"
               >
                 Login
@@ -72,7 +69,6 @@ export default function Navbar() {
             </>
           )}
 
-          {/* CUSTOMER */}
           {user?.role === "customer" && (
             <>
               <Link href="/user/mycart">🛒 MyCart</Link>
@@ -83,7 +79,6 @@ export default function Navbar() {
             </>
           )}
 
-          {/* ADMIN */}
           {user?.role === "admin" && (
             <>
               <Link href="/admin/orders">Pesanan</Link>
@@ -93,6 +88,7 @@ export default function Navbar() {
               </button>
             </>
           )}
+
         </div>
       </div>
     </nav>
