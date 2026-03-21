@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { useAuth } from '@/components/providers/AuthProvider'; // ✅ tambah ini
 
 export default function ProductCard({ p }) {
+  const { openLogin } = useAuth(); // ✅ ambil login modal
+
   const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
   const FALLBACK_IMG = "https://via.placeholder.com/400x300?text=No+Image";
 
-  // LOGIKA HARGA & DISKON
   const price = Number(p.price) || 0;
   const discountPercent = Number(p.disc) || 0;
   const hasDiscount = discountPercent > 0;
@@ -26,13 +28,28 @@ export default function ProductCard({ p }) {
           if (i < fullStars) {
             return <span key={i}>⭐</span>;
           } else if (i === fullStars && halfStar) {
-            return <span key={i}>⭐</span>; // bisa upgrade jadi half star nanti
+            return <span key={i}>⭐</span>;
           } else {
             return <span key={i} className="opacity-20">⭐</span>;
           }
         })}
       </div>
     );
+  };
+
+  // 🔥 HANDLE BELI
+  const handleBuy = (e) => {
+    e.preventDefault(); // ❗ STOP LINK
+    e.stopPropagation();
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      openLogin(); // 🔥 munculin modal
+      return;
+    }
+
+    alert("Lanjut ke checkout"); // nanti bisa ganti ke cart / checkout
   };
 
   return (
@@ -82,33 +99,42 @@ export default function ProductCard({ p }) {
                 {p.rating ? p.rating.toFixed(1) : "0.0"}
               </span>
             </div>
-
           </div>
 
           {/* HARGA & STOK */}
-          <div className="mt-auto flex justify-between items-end border-t border-gray-50 pt-4">
+          <div className="mt-auto border-t border-gray-50 pt-4">
             
-            <div className="flex flex-col">
-              {hasDiscount && (
-                <span className="text-gray-400 text-[10px] font-bold line-through leading-none mb-1">
-                  Rp {price.toLocaleString('id-ID')}
+            <div className="flex justify-between items-end mb-4">
+              <div className="flex flex-col">
+                {hasDiscount && (
+                  <span className="text-gray-400 text-[10px] font-bold line-through leading-none mb-1">
+                    Rp {price.toLocaleString('id-ID')}
+                  </span>
+                )}
+
+                <span className="text-blue-600 font-black text-xl leading-none">
+                  Rp {Math.floor(finalPrice).toLocaleString('id-ID')}
                 </span>
-              )}
+              </div>
 
-              <span className="text-blue-600 font-black text-xl leading-none">
-                Rp {Math.floor(finalPrice).toLocaleString('id-ID')}
-              </span>
-            </div>
-
-            <div className="text-right">
-              <div className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-opacity-10 ${
-                p.stock === 0 ? 'text-red-600 bg-red-100' 
-                : p.stock <= 20 ? 'text-yellow-600 bg-yellow-100' 
-                : 'text-gray-400 bg-gray-100'
-              }`}>
-                Stok: {p.stock}
+              <div className="text-right">
+                <div className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-opacity-10 ${
+                  p.stock === 0 ? 'text-red-600 bg-red-100' 
+                  : p.stock <= 20 ? 'text-yellow-600 bg-yellow-100' 
+                  : 'text-gray-400 bg-gray-100'
+                }`}>
+                  Stok: {p.stock}
+                </div>
               </div>
             </div>
+
+            {/* 🔥 BUTTON BELI */}
+            <button
+              onClick={handleBuy}
+              className="w-full bg-black text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all"
+            >
+              Beli
+            </button>
 
           </div>
 
