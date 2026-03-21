@@ -61,6 +61,20 @@ export default function LoginPage() {
     }
   };
 
+
+const handleLogout = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user_session");
+
+  // 🔥 trigger update navbar
+  window.dispatchEvent(new Event("authChanged"));
+
+  // ✅ redirect ke homepage
+  router.push("/");
+};
+
+  
+  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
       <form onSubmit={handleLogin} className="p-10 bg-white shadow-2xl rounded-[2.5rem] w-full max-w-md border border-gray-100">
