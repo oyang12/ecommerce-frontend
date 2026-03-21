@@ -3,15 +3,15 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth"; // ✅ pakai hook dari hooks
+import { useAuth } from "@/hooks/useAuthModal"; // <-- pakai hook login modal, bukan session
 
 export default function Navbar() {
   const [search, setSearch] = useState("");
   const [user, setUser] = useState(null);
   const router = useRouter();
-  const { openLogin } = useAuth(); // ✅ ambil dari hook
+  const { openLogin } = useAuth(); // ✅ ambil dari modal hook
 
-  // Ambil user dari localStorage
+  // Ambil user session untuk menu dinamis
   const loadUser = () => {
     const session = localStorage.getItem("user_session");
     setUser(session ? JSON.parse(session) : null);
@@ -59,11 +59,12 @@ export default function Navbar() {
 
         {/* Menu dinamis */}
         <div className="flex items-center gap-6 text-sm text-gray-700">
+          {/* BELUM LOGIN */}
           {!user && (
             <>
               <Link href="/register">Daftar</Link>
               <button
-                onClick={openLogin} // ✅ sekarang aman
+                onClick={openLogin} // ✅ aman karena hook login modal
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg"
               >
                 Login
@@ -71,6 +72,7 @@ export default function Navbar() {
             </>
           )}
 
+          {/* CUSTOMER */}
           {user?.role === "customer" && (
             <>
               <Link href="/user/mycart">🛒 MyCart</Link>
@@ -81,6 +83,7 @@ export default function Navbar() {
             </>
           )}
 
+          {/* ADMIN */}
           {user?.role === "admin" && (
             <>
               <Link href="/admin/orders">Pesanan</Link>
