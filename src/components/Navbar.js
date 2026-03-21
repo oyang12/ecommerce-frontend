@@ -3,29 +3,24 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/components/providers/AuthProvider"; // ✅ tambah ini
+import { useAuth } from "@/hooks/useAuth"; // ✅ pakai hook dari hooks
 
 export default function Navbar() {
   const [search, setSearch] = useState("");
   const [user, setUser] = useState(null);
   const router = useRouter();
-  const { openLogin } = useAuth(); // ✅ ambil dari context
+  const { openLogin } = useAuth(); // ✅ ambil dari hook
 
-  // 🔥 FUNCTION AMBIL USER
+  // Ambil user dari localStorage
   const loadUser = () => {
     const session = localStorage.getItem("user_session");
     setUser(session ? JSON.parse(session) : null);
   };
 
-  // 🔥 LOAD AWAL + LISTENER
   useEffect(() => {
     loadUser();
-
     window.addEventListener("authChanged", loadUser);
-
-    return () => {
-      window.removeEventListener("authChanged", loadUser);
-    };
+    return () => window.removeEventListener("authChanged", loadUser);
   }, []);
 
   const handleSearch = (e) => {
@@ -36,16 +31,13 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user_session");
-
     window.dispatchEvent(new Event("authChanged"));
-
     router.push("/");
   };
 
   return (
     <nav className="bg-white shadow-md p-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        
         {/* Logo */}
         <Link href="/" className="text-2xl font-bold text-blue-600">
           MyStore
@@ -65,17 +57,13 @@ export default function Navbar() {
           </button>
         </form>
 
-        {/* MENU DINAMIS */}
+        {/* Menu dinamis */}
         <div className="flex items-center gap-6 text-sm text-gray-700">
-
-          {/* BELUM LOGIN */}
           {!user && (
             <>
               <Link href="/register">Daftar</Link>
-
-              {/* 🔥 LOGIN GLOBAL (FIX) */}
               <button
-                onClick={openLogin} // ✅ GANTI INI
+                onClick={openLogin} // ✅ sekarang aman
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg"
               >
                 Login
@@ -83,7 +71,6 @@ export default function Navbar() {
             </>
           )}
 
-          {/* CUSTOMER */}
           {user?.role === "customer" && (
             <>
               <Link href="/user/mycart">🛒 MyCart</Link>
@@ -94,7 +81,6 @@ export default function Navbar() {
             </>
           )}
 
-          {/* ADMIN */}
           {user?.role === "admin" && (
             <>
               <Link href="/admin/orders">Pesanan</Link>
@@ -104,7 +90,6 @@ export default function Navbar() {
               </button>
             </>
           )}
-
         </div>
       </div>
     </nav>
