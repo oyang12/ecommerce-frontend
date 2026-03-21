@@ -1,28 +1,41 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useEffect, useState } from "react";
 import useAuth from "@/hooks/useAuth";
 
 export default function MyCartPage() {
   const auth = useAuth();
   const user = auth?.user;
-  const [cart, setCart] = useState([]);
 
-  // 🔥 Load cart dari localStorage
+  const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 🔥 Load cart
   useEffect(() => {
     if (!user) return;
 
-    const storedCart = localStorage.getItem(`cart_${user.id}`);
-    if (storedCart) {
-      setCart(JSON.parse(storedCart));
+    try {
+      const storedCart = localStorage.getItem(`cart_${user.id}`);
+      if (storedCart) {
+        setCart(JSON.parse(storedCart));
+      }
+    } catch (err) {
+      console.error("Error load cart:", err);
     }
+
+    setLoading(false);
   }, [user]);
 
   // 🔥 Hapus item
   const removeItem = (id) => {
     const updated = cart.filter((item) => item.id !== id);
     setCart(updated);
-    localStorage.setItem(`cart_${user.id}`, JSON.stringify(updated));
+
+    if (user) {
+      localStorage.setItem(`cart_${user.id}`, JSON.stringify(updated));
+    }
   };
 
   // 🔥 Hitung total
@@ -30,8 +43,13 @@ export default function MyCartPage() {
     return acc + item.price * item.qty;
   }, 0);
 
+  // 🔥 Loading state (penting!)
   if (!user) {
-    return <p className="p-10 text-center">Silakan login dulu</p>;
+    return <p className="p-10 text-center">Loading...</p>;
+  }
+
+  if (loading) {
+    return <p className="p-10 text-center">Loading cart...</p>;
   }
 
   return (
@@ -50,6 +68,7 @@ export default function MyCartPage() {
               >
                 <img
                   src={item.image}
+                  alt={item.name}
                   className="w-20 h-20 object-cover rounded"
                 />
 
@@ -75,7 +94,7 @@ export default function MyCartPage() {
               Total: Rp {total.toLocaleString()}
             </h2>
 
-            <button className="mt-4 bg-blue-600 text-white px-6 py-2 rounded">
+            <button className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
               Checkout
             </button>
           </div>
