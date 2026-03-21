@@ -11,17 +11,8 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(null);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false); 
-
-  // 🔥 TAMBAHAN POPUP
+  // 🔥 POPUP SUCCESS
   const [showPopup, setShowPopup] = useState(false);
-
-  useEffect(() => { 
-    if (typeof window !== 'undefined') { 
-      const savedUser = localStorage.getItem('user_session'); 
-      if (savedUser) setIsLoggedIn(true); 
-    } 
-  }, []);
 
   const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
 
@@ -67,11 +58,12 @@ export default function ProductDetailPage() {
   const hasDiscount = discountPercent > 0;
   const finalPrice = hasDiscount ? price - (price * discountPercent / 100) : price;
 
-  // 🔥 GANTI HANDLE ORDER → ADD TO CART
+  // 🔥 FIX LOGIN CHECK DI SINI SAJA
   const handleOrder = () => {
-    if (!isLoggedIn) {
-      // 🔥 trigger buka login popup global
-      window.dispatchEvent(new Event("openLogin"));
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      window.dispatchEvent(new Event("openLogin")); // ✅ pasti trigger popup
       return;
     }
 
@@ -99,7 +91,6 @@ export default function ProductDetailPage() {
 
     localStorage.setItem(key, JSON.stringify(cart));
 
-    // 🔥 tampilkan popup
     setShowPopup(true);
   };
 
@@ -207,7 +198,7 @@ export default function ProductDetailPage() {
                   disabled={product.stock <= 0}
                   className="w-full bg-[#0a0f1e] text-white py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-700 transition-all shadow-xl active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
-                  {isLoggedIn ? "Tambah ke Cart" : "Login untuk Beli"}
+                  Tambah ke Cart
                 </button>
               </div>
             </div>
