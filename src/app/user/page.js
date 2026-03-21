@@ -1,9 +1,9 @@
 'use client'; 
 
 import { useEffect, useState } from 'react';
-import ProductCard from '../components/ProductCard';
+import ProductCard from '@/components/ProductCard';
 import Filter from "@/components/Filter";
-import { fetchProducts } from '../services/api';
+import { fetchProducts } from '@/services/api';
 import useAuth from "@/hooks/useAuth";
 
 
