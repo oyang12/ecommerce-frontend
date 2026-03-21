@@ -27,6 +27,7 @@ export default function LoginPage() {
       if (res.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user_session", JSON.stringify(data.user));
+        window.dispatchEvent(new Event("authChanged"));
 
         // Redirect sesuai role
         if (data.user.role === "admin") {
