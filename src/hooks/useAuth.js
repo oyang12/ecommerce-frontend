@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 
 export default function useAuth(roleRequired = null) {
- 
+  const [user, setUser] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
