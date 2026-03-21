@@ -28,8 +28,6 @@ export default function LoginPage() {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user_session", JSON.stringify(data.user));
 
-        alert(`Login Berhasil! Selamat datang ${data.user.name}`);
-
         // Redirect sesuai role
         if (data.user.role === "admin") {
           router.push("/admin/products");
