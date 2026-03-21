@@ -3,10 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import LoginModal from "@/components/LoginModal";
 
 export default function Navbar() {
-  const [showLogin, setShowLogin] = useState(false);
   const [search, setSearch] = useState("");
   const [user, setUser] = useState(null);
   const router = useRouter();
@@ -19,17 +17,12 @@ export default function Navbar() {
 
   // 🔥 LOAD AWAL + LISTENER
   useEffect(() => {
-  loadUser();
+    loadUser();
 
-  window.addEventListener("authChanged", loadUser);
+    window.addEventListener("authChanged", loadUser);
 
-    // 🔥 LISTENER BUKA LOGIN POPUP
-    const openLoginHandler = () => setShowLogin(true);
-    window.addEventListener("openLogin", openLoginHandler);
-  
     return () => {
       window.removeEventListener("authChanged", loadUser);
-      window.removeEventListener("openLogin", openLoginHandler);
     };
   }, []);
 
@@ -48,78 +41,70 @@ export default function Navbar() {
   };
 
   return (
-    <>
-      <nav className="bg-white shadow-md p-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          
-          {/* Logo */}
-          <Link href="/" className="text-2xl font-bold text-blue-600">
-            MyStore
-          </Link>
+    <nav className="bg-white shadow-md p-4">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        
+        {/* Logo */}
+        <Link href="/" className="text-2xl font-bold text-blue-600">
+          MyStore
+        </Link>
 
-          {/* Search */}
-          <form onSubmit={handleSearch} className="flex w-1/2">
-            <input
-              type="text"
-              placeholder="Search product..."
-              className="border w-full px-4 py-2 rounded-l focus:outline-none focus:ring-1 focus:ring-blue-500 text-black"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <button className="bg-blue-500 text-white px-6 rounded-r hover:bg-blue-600">
-              Search
-            </button>
-          </form>
+        {/* Search */}
+        <form onSubmit={handleSearch} className="flex w-1/2">
+          <input
+            type="text"
+            placeholder="Search product..."
+            className="border w-full px-4 py-2 rounded-l focus:outline-none focus:ring-1 focus:ring-blue-500 text-black"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <button className="bg-blue-500 text-white px-6 rounded-r hover:bg-blue-600">
+            Search
+          </button>
+        </form>
 
-          {/* MENU DINAMIS */}
-          <div className="flex items-center gap-6 text-sm text-gray-700">
+        {/* MENU DINAMIS */}
+        <div className="flex items-center gap-6 text-sm text-gray-700">
 
-            {/* BELUM LOGIN */}
-            {!user && (
-              <>
-                <Link href="/register">Daftar</Link>
+          {/* BELUM LOGIN */}
+          {!user && (
+            <>
+              <Link href="/register">Daftar</Link>
 
-                {/* 🔥 LOGIN POPUP */}
-                <button
-                  onClick={() => setShowLogin(true)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-                >
-                  Login
-                </button>
-              </>
-            )}
+              {/* 🔥 LOGIN GLOBAL */}
+              <button
+                onClick={() => window.dispatchEvent(new Event("openLogin"))}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+              >
+                Login
+              </button>
+            </>
+          )}
 
-            {/* CUSTOMER */}
-            {user?.role === "customer" && (
-              <>
-                <Link href="/user/mycart">🛒 MyCart</Link>
-                <Link href="/user/orders">Pesanan</Link>
-                <button onClick={handleLogout} className="text-red-500">
-                  Logout
-                </button>
-              </>
-            )}
+          {/* CUSTOMER */}
+          {user?.role === "customer" && (
+            <>
+              <Link href="/user/mycart">🛒 MyCart</Link>
+              <Link href="/user/orders">Pesanan</Link>
+              <button onClick={handleLogout} className="text-red-500">
+                Logout
+              </button>
+            </>
+          )}
 
-            {/* ADMIN */}
-            {user?.role === "admin" && (
-              <>
-                <Link href="/admin/orders">Pesanan</Link>
-                <Link href="/admin/reports">Laporan</Link>
-                <button onClick={handleLogout} className="text-red-500">
-                  Logout
-                </button>
-              </>
-            )}
+          {/* ADMIN */}
+          {user?.role === "admin" && (
+            <>
+              <Link href="/admin/orders">Pesanan</Link>
+              <Link href="/admin/reports">Laporan</Link>
+              <button onClick={handleLogout} className="text-red-500">
+                Logout
+              </button>
+            </>
+          )}
 
-          </div>
         </div>
-      </nav>
-
-      {/* 🔥 LOGIN MODAL */}
-      <LoginModal
-        isOpen={showLogin}
-        onClose={() => setShowLogin(false)}
-      />
-    </>
+      </div>
+    </nav>
   );
 }
