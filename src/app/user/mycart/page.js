@@ -6,87 +6,91 @@ import { useEffect, useState } from "react";
 import useAuth from "@/hooks/useAuth";
 
 export default function MyCartPage() {
-  const auth = useAuth();
-  const user = auth?.user;
+  const { user } = useAuth();
 
   const [cart, setCart] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  // 🔥 Load cart
+  // LOAD CART
   useEffect(() => {
     if (!user) return;
 
-    try {
-      const storedCart = localStorage.getItem(`cart_${user.id}`);
-      if (storedCart) {
-        setCart(JSON.parse(storedCart));
-      }
-    } catch (err) {
-      console.error("Error load cart:", err);
-    }
-
-    setLoading(false);
+    const data = localStorage.getItem(`cart_${user.id}`);
+    if (data) setCart(JSON.parse(data));
   }, [user]);
 
-  // 🔥 Hapus item
-  const removeItem = (id) => {
-    const updated = cart.filter((item) => item.id !== id);
+  // UPDATE LOCALSTORAGE
+  const saveCart = (updated) => {
     setCart(updated);
-
-    if (user) {
-      localStorage.setItem(`cart_${user.id}`, JSON.stringify(updated));
-    }
+    localStorage.setItem(`cart_${user.id}`, JSON.stringify(updated));
   };
 
-  // 🔥 Hitung total
-  const total = cart.reduce((acc, item) => {
-    return acc + item.price * item.qty;
-  }, 0);
+  // ➕ tambah qty
+  const increaseQty = (id) => {
+    const updated = cart.map((item) =>
+      item.id === id ? { ...item, qty: item.qty + 1 } : item
+    );
+    saveCart(updated);
+  };
 
-  // 🔥 Loading state (penting!)
-  if (!user) {
-    return <p className="p-10 text-center">Loading...</p>;
-  }
+  // ➖ kurang qty
+  const decreaseQty = (id) => {
+    const updated = cart
+      .map((item) =>
+        item.id === id ? { ...item, qty: item.qty - 1 } : item
+      )
+      .filter((item) => item.qty > 0);
 
-  if (loading) {
-    return <p className="p-10 text-center">Loading cart...</p>;
-  }
+    saveCart(updated);
+  };
+
+  // 🗑 hapus 1 item
+  const removeItem = (id) => {
+    const updated = cart.filter((item) => item.id !== id);
+    saveCart(updated);
+  };
+
+  // 🗑 clear semua
+  const clearCart = () => {
+    saveCart([]);
+  };
+
+  // 🧮 total
+  const total = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
+
+  if (!user) return <p className="p-10 text-center">Loading...</p>;
 
   return (
     <div className="max-w-5xl mx-auto p-6">
+
       <h1 className="text-2xl font-bold mb-6">My Cart</h1>
 
       {cart.length === 0 ? (
-        <p>Cart masih kosong 😢</p>
+        <p>Cart kosong 😢</p>
       ) : (
         <>
-          <div className="space-y-4">
-            {cart.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center gap-4 border p-4 rounded-lg"
-              >
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-20 h-20 object-cover rounded"
-                />
+          {cart.map((item) => (
+            <div key={item.id} className="flex items-center gap-4 border p-4 mb-3 rounded">
 
-                <div className="flex-1">
-                  <h2 className="font-semibold">{item.name}</h2>
-                  <p>Rp {item.price.toLocaleString()}</p>
-                  <p>Qty: {item.qty}</p>
+              <img src={item.image} className="w-20 h-20 object-cover rounded" />
+
+              <div className="flex-1">
+                <h2>{item.name}</h2>
+                <p>Rp {item.price.toLocaleString()}</p>
+
+                {/* QTY */}
+                <div className="flex items-center gap-2 mt-2">
+                  <button onClick={() => decreaseQty(item.id)} className="px-2 bg-gray-200">-</button>
+                  <span>{item.qty}</span>
+                  <button onClick={() => increaseQty(item.id)} className="px-2 bg-gray-200">+</button>
                 </div>
-
-                <button
-                  onClick={() => removeItem(item.id)}
-                  className="text-red-500"
-                >
-                  Hapus
-                </button>
               </div>
-            ))}
-          </div>
+
+              <button onClick={() => removeItem(item.id)} className="text-red-500">
+                Hapus
+              </button>
+
+            </div>
+          ))}
 
           {/* TOTAL */}
           <div className="mt-6 text-right">
@@ -94,12 +98,25 @@ export default function MyCartPage() {
               Total: Rp {total.toLocaleString()}
             </h2>
 
-            <button className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-              Checkout
-            </button>
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={clearCart}
+                className="bg-gray-300 px-4 py-2 rounded"
+              >
+                Clear All
+              </button>
+
+              <button
+                onClick={() => alert("Next: kirim ke backend 🚀")}
+                className="bg-blue-600 text-white px-6 py-2 rounded"
+              >
+                Checkout
+              </button>
+            </div>
           </div>
         </>
       )}
+
     </div>
   );
 }
