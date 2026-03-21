@@ -28,8 +28,12 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
       const data = await res.json();
 
       if (res.ok) {
+        // 🔥 SIMPAN TOKEN
         localStorage.setItem("token", data.token);
+
+        // 🔥 KIRIM KE PROVIDER (INI PENTING)
         onSuccess(data.user);
+
         return;
       }
 
@@ -59,7 +63,6 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
       {/* MODAL */}
       <div className="relative w-full max-w-md mx-4 animate-[fadeIn_.3s_ease]">
 
-        {/* CARD */}
         <div className="relative bg-white/90 backdrop-blur-xl border border-white/20 shadow-2xl rounded-[2.5rem] p-10">
 
           {/* CLOSE */}
@@ -90,7 +93,6 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
           {/* FORM */}
           <form onSubmit={handleLogin} className="space-y-5">
 
-            {/* EMAIL */}
             <div>
               <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">
                 Email
@@ -105,7 +107,6 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
               />
             </div>
 
-            {/* PASSWORD */}
             <div>
               <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">
                 Password
@@ -120,7 +121,6 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
               />
             </div>
 
-            {/* BUTTON */}
             <button
               type="submit"
               disabled={loading}
@@ -131,7 +131,6 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
 
           </form>
 
-          {/* FOOTER */}
           <div className="text-center mt-8">
             <p className="text-[11px] text-gray-400">
               Belum punya akun?{" "}
@@ -144,7 +143,6 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
         </div>
       </div>
 
-      {/* ANIMATION STYLE */}
       <style jsx>{`
         @keyframes fadeIn {
           from {
