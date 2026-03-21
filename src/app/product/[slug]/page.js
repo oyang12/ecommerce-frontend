@@ -2,40 +2,33 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useAuth } from '@/components/providers/AuthProvider';
+import { useAuth } from '@/components/providers/AuthProvider'; // ✅ tetap
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const slug = params?.slug;
-
-  const { user, openLogin } = useAuth();
-
+  const slug = params?.slug; 
+  
+  const { user, openLogin } = useAuth(); // ✅ pakai user
+  
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(null);
-  const [showPopup, setShowPopup] = useState(false);
+
+  const [showPopup, setShowPopup] = useState(false); // ❌ isLoggedIn dihapus
 
   const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
 
-  // 🔥 FETCH DATA
   useEffect(() => {
     if (!slug) return;
 
     const fetchDetail = async () => {
+      const API_URL = `https://ecommerce-backend-production-aa2e.up.railway.app/api/products/${slug}`;
       try {
-        const res = await fetch(
-          `https://ecommerce-backend-production-aa2e.up.railway.app/api/products/${slug}`,
-          { cache: 'no-store' }
-        );
-
+        const res = await fetch(API_URL, { cache: 'no-store' });
         const result = await res.json();
-
         if (result.data) {
           setProduct(result.data);
-          setActiveImage(
-            result.data.thumbnail ||
-            result.data.images?.[0]?.image
-          );
+          setActiveImage(result.data.thumbnail || (result.data.images?.[0]?.image));
         }
       } catch (err) {
         console.error("Gagal memuat detail produk:", err);
@@ -47,37 +40,35 @@ export default function ProductDetailPage() {
     fetchDetail();
   }, [slug]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-gray-900 border-opacity-50"></div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-gray-900 border-opacity-50"></div>
+    </div>
+  );
 
-  if (!product) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p>Produk tidak ditemukan</p>
+  if (!product) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <p className="font-black uppercase tracking-widest text-gray-400">Produk tidak ditemukan</p>
+        <button onClick={() => window.history.back()} className="mt-4 text-xs font-bold text-blue-600 uppercase underline">Kembali ke Katalog</button>
       </div>
-    );
-  }
+    </div>
+  );
 
   const price = Number(product.price) || 0;
-  const discountPercent = Number(product.disc) || 0;
+  const discountPercent = Number(product.disc) || 0; 
   const hasDiscount = discountPercent > 0;
+  const finalPrice = hasDiscount ? price - (price * discountPercent / 100) : price;
 
-  const finalPrice = hasDiscount
-    ? price - (price * discountPercent / 100)
-    : price;
-
-  // 🔥 HANDLE ORDER (FIX REDIRECT ONLY)
+  // 🔥 FIX LOGIN ONLY
   const handleOrder = () => {
+    // ❌ BELUM LOGIN
     if (!user) {
-      openLogin({ redirect: window.location.pathname }); // 🔥 redirect balik sini
+      openLogin({ redirect: window.location.pathname }); // ✅ redirect balik sini
       return;
     }
 
+    // ✅ SUDAH LOGIN → logic lama tetap
     const key = `cart_${user.id}`;
 
     const existing = localStorage.getItem(key);
@@ -92,69 +83,126 @@ export default function ProductDetailPage() {
         id: product.id,
         name: product.name,
         price: Math.floor(finalPrice),
-        image: product.thumbnail
-          ? `${STORAGE_URL}${product.thumbnail}`
+        image: product.thumbnail 
+          ? `${STORAGE_URL}${product.thumbnail}` 
           : "https://via.placeholder.com/300",
         qty: 1,
       });
     }
 
     localStorage.setItem(key, JSON.stringify(cart));
+
     setShowPopup(true);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 text-black">
+    <div className="min-h-screen bg-gray-50 p-6 font-sans text-black">
       <div className="max-w-6xl mx-auto">
-
-        <button
+        
+        <button 
           onClick={() => window.history.back()}
-          className="mb-8 text-sm text-gray-500"
+          className="mb-8 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-black transition-all"
         >
-          ← Kembali
+          ← Kembali ke Katalog
         </button>
 
-        <div className="grid lg:grid-cols-2 gap-10">
-
-          {/* IMAGE */}
-          <div>
-            <img
-              src={
-                activeImage
-                  ? `${STORAGE_URL}${activeImage}`
-                  : "https://via.placeholder.com/600"
-              }
-              className="w-full rounded-xl"
-            />
-          </div>
-
-          {/* INFO */}
-          <div>
-            <h1 className="text-3xl font-bold mb-4">
-              {product.name}
-            </h1>
-
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          
+          {/* GALLERY SECTION */}
+          <div className="relative space-y-4">
             {hasDiscount && (
-              <p className="text-gray-400 line-through">
-                Rp {price.toLocaleString("id-ID")}
-              </p>
+              <div className="absolute top-4 left-4 z-10 bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-lg shadow-lg">
+                -{discountPercent}%
+              </div>
             )}
 
-            <p className="text-blue-600 text-2xl font-bold mb-4">
-              Rp {Math.floor(finalPrice).toLocaleString("id-ID")}
-            </p>
+            <div className="aspect-square bg-white rounded-3xl overflow-hidden border border-gray-200 shadow-sm group">
+              <img 
+                src={activeImage ? `${STORAGE_URL}${activeImage}` : "https://via.placeholder.com/600x600?text=No+Image"} 
+                alt={product.name} 
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 gap-4">
+              {product.thumbnail && (
+                <button 
+                  onClick={() => setActiveImage(product.thumbnail)}
+                  className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${activeImage === product.thumbnail ? 'border-gray-900 shadow-md scale-95' : 'border-transparent opacity-50 hover:opacity-100'}`}
+                >
+                  <img src={`${STORAGE_URL}${product.thumbnail}`} className="w-full h-full object-cover" alt="main-thumb" />
+                </button>
+              )}
 
-            <p className="text-gray-600 mb-6">
-              {product.description}
-            </p>
+              {product.images && product.images
+                .filter(img => img.image !== product.thumbnail)
+                .map((img, idx) => (
+                  <button 
+                    key={idx}
+                    onClick={() => setActiveImage(img.image)}
+                    className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${
+                      activeImage === img.image ? 'border-gray-900 shadow-md scale-95' : 'border-transparent opacity-50 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={`${STORAGE_URL}${img.image}`} className="w-full h-full object-cover" alt={`gallery-${idx}`} />
+                  </button>
+                ))
+              }
+            </div>
+          </div>
 
-            <button
-              onClick={handleOrder}
-              disabled={product.stock <= 0}
-              className="w-full bg-black text-white py-3 rounded-lg"
-            >
-              {user ? "Tambah ke Cart" : "Login untuk Beli"}
-            </button>
+          {/* INFO SECTION */}
+          <div className="flex flex-col justify-center">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-2">
+              {product.category || "Original Collection"}
+            </span>
+            <h1 className="text-4xl md:text-5xl font-black text-gray-900 uppercase leading-tight tracking-tighter mb-4">
+              {product.name}
+            </h1>
+            
+            <div className="flex flex-col mb-8">
+              <div className="flex items-end justify-between gap-3 border-b border-gray-100 pb-4">
+                <div>
+                  {hasDiscount && (
+                    <p className="text-xs font-bold text-gray-400 line-through mb-1">
+                      Rp {price.toLocaleString('id-ID')}
+                    </p>
+                  )}
+                  <p className="text-4xl font-black text-blue-600">
+                    Rp {Math.floor(finalPrice).toLocaleString('id-ID')}
+                  </p>
+                </div>
+                <div className="text-right">
+                  {hasDiscount && (
+                    <p className="text-[10px] font-black text-red-500 uppercase tracking-tighter mb-1">
+                      Disc {discountPercent}%
+                    </p>
+                  )}
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${product.stock > 0 ? 'text-yellow-500' : 'text-red-500'}`}>
+                    Stok: {product.stock}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Deskripsi Produk</h3>
+                <p className="text-gray-600 leading-relaxed italic text-sm md:text-base whitespace-pre-line">
+                  {product.description || "Produk ini belum memiliki deskripsi detail."}
+                </p>
+              </div>
+
+              <div className="pt-6">
+                <button 
+                  onClick={handleOrder}
+                  disabled={product.stock <= 0}
+                  className="w-full bg-[#0a0f1e] text-white py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-700 transition-all shadow-xl active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  {user ? "Tambah ke Cart" : "Login untuk Beli"}
+                </button>
+              </div>
+            </div>
           </div>
 
         </div>
@@ -162,18 +210,24 @@ export default function ProductDetailPage() {
 
       {/* POPUP */}
       {showPopup && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-xl text-center">
-            <p className="mb-4">Berhasil masuk cart 🛒</p>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center shadow-xl">
+            <h2 className="text-lg font-bold mb-2">Berhasil!</h2>
+            <p className="text-gray-600 mb-6">
+              Produk sudah masuk ke cart 🛒
+            </p>
 
-            <div className="flex gap-2">
-              <button onClick={() => setShowPopup(false)}>
-                Lanjut
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowPopup(false)}
+                className="flex-1 border py-2 rounded-lg"
+              >
+                Lanjut Belanja
               </button>
 
               <button
                 onClick={() => window.location.href = "/user/mycart"}
-                className="bg-blue-600 text-white px-3 py-2 rounded"
+                className="flex-1 bg-blue-600 text-white py-2 rounded-lg"
               >
                 Lihat Cart
               </button>
@@ -181,6 +235,7 @@ export default function ProductDetailPage() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
