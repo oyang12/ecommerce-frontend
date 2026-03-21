@@ -51,96 +51,54 @@ export default function ProductCard({ p }) {
   };
 
   return (
-    <div className="block group">
+    <div className="relative group">
 
-      {/* 🔥 BAGIAN YANG BISA DIKLIK KE DETAIL */}
-      <Link href={`/product/${p.slug}`}>
-        <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden relative hover:shadow-2xl transition-all duration-500 flex flex-col h-full cursor-pointer">
-          
-          {/* BADGE STATUS */}
-          {p.status !== "Active" && (
-            <div className="absolute top-4 right-4 z-30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm bg-gray-100 text-gray-500 border border-gray-200">
-              {p.status}
-            </div>
-          )}
+      {/* 🔥 OVERLAY LINK */}
+      <Link
+        href={`/product/${p.slug}`}
+        className="absolute inset-0 z-10"
+      />
 
-          {/* BADGE DISKON */}
-          {hasDiscount && (
-            <div className="absolute top-4 left-4 z-30 bg-red-600 text-white px-2 py-1 rounded-lg text-[10px] font-black uppercase shadow-md">
-              -{discountPercent}%
-            </div>
-          )}
-
-          {/* IMAGE */}
-          <div className="aspect-square overflow-hidden bg-gray-50 relative">
-            <img 
-              src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : FALLBACK_IMG} 
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-              alt={p.name}
-              onError={(e) => { e.target.src = FALLBACK_IMG; }}
-            />
+      {/* CARD */}
+      <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden relative hover:shadow-2xl transition-all duration-500 flex flex-col h-full">
+        
+        {/* BADGE DISKON */}
+        {hasDiscount && (
+          <div className="absolute top-4 left-4 z-20 bg-red-600 text-white px-2 py-1 rounded-lg text-[10px] font-black">
+            -{discountPercent}%
           </div>
+        )}
 
-          {/* CONTENT */}
-          <div className="p-6 flex-grow flex flex-col">
-            
-            <div className="mb-3">
-              <h3 className="font-black text-gray-900 uppercase truncate text-sm tracking-tight group-hover:text-blue-600 transition-colors">
-                {p.name}
-              </h3>
-
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-                {p.category || "Collection"}
-              </p>
-
-              {/* ⭐ RATING */}
-              <div className="flex items-center justify-between mt-2">
-                {renderStars(p.rating || 0)}
-                <span className="text-[10px] text-gray-400 font-bold">
-                  {p.rating ? p.rating.toFixed(1) : "0.0"}
-                </span>
-              </div>
-            </div>
-
-            {/* HARGA & STOK */}
-            <div className="mt-auto flex justify-between items-end border-t border-gray-50 pt-4">
-              
-              <div className="flex flex-col">
-                {hasDiscount && (
-                  <span className="text-gray-400 text-[10px] font-bold line-through leading-none mb-1">
-                    Rp {price.toLocaleString('id-ID')}
-                  </span>
-                )}
-
-                <span className="text-blue-600 font-black text-xl leading-none">
-                  Rp {Math.floor(finalPrice).toLocaleString('id-ID')}
-                </span>
-              </div>
-
-              <div className="text-right">
-                <div className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-opacity-10 ${
-                  p.stock === 0 ? 'text-red-600 bg-red-100' 
-                  : p.stock <= 20 ? 'text-yellow-600 bg-yellow-100' 
-                  : 'text-gray-400 bg-gray-100'
-                }`}>
-                  Stok: {p.stock}
-                </div>
-              </div>
-
-            </div>
-
-          </div>
+        {/* IMAGE */}
+        <div className="aspect-square overflow-hidden bg-gray-50">
+          <img 
+            src={p.thumbnail ? `${STORAGE_URL}${p.thumbnail}` : FALLBACK_IMG} 
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            alt={p.name}
+          />
         </div>
-      </Link>
 
-      {/* 🔥 BUTTON DI LUAR LINK (PENTING BANGET) */}
-      <button
-        onClick={handleBuy}
-        className="w-full mt-3 bg-black text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all"
-      >
-        Beli
-      </button>
+        {/* CONTENT */}
+        <div className="p-6 flex flex-col flex-grow">
+          
+          <h3 className="font-black text-sm uppercase text-gray-900">
+            {p.name}
+          </h3>
 
+          <span className="text-blue-600 font-black text-xl mt-2">
+            Rp {Math.floor(finalPrice).toLocaleString('id-ID')}
+          </span>
+
+          {/* 🔥 BUTTON (DI ATAS LINK) */}
+          <button
+            onClick={handleBuy}
+            className="relative z-20 mt-4 bg-black text-white py-3 rounded-xl text-xs font-black uppercase hover:bg-blue-600 transition-all"
+          >
+            Beli
+          </button>
+
+        </div>
+      </div>
     </div>
   );
 }
