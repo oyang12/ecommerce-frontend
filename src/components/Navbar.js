@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/providers/AuthProvider"; // ✅ tambah ini
 
 export default function Navbar() {
   const [search, setSearch] = useState("");
   const [user, setUser] = useState(null);
   const router = useRouter();
+  const { openLogin } = useAuth(); // ✅ ambil dari context
 
   // 🔥 FUNCTION AMBIL USER
   const loadUser = () => {
@@ -71,9 +73,9 @@ export default function Navbar() {
             <>
               <Link href="/register">Daftar</Link>
 
-              {/* 🔥 LOGIN GLOBAL */}
+              {/* 🔥 LOGIN GLOBAL (FIX) */}
               <button
-                onClick={() => window.dispatchEvent(new Event("openLogin"))}
+                onClick={openLogin} // ✅ GANTI INI
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg"
               >
                 Login
