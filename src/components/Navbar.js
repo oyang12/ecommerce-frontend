@@ -6,15 +6,25 @@ import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [search, setSearch] = useState("");
-  const [user, setUser] = useState(null); // State untuk menyimpan data user
+  const [user, setUser] = useState(null);
   const router = useRouter();
 
-  // Ambil data user dari localStorage saat komponen dimuat
-  useEffect(() => {
+  // 🔥 FUNCTION AMBIL USER
+  const loadUser = () => {
     const session = localStorage.getItem("user_session");
-    if (session) {
-      setUser(JSON.parse(session));
-    }
+    setUser(session ? JSON.parse(session) : null);
+  };
+
+  // 🔥 LOAD AWAL + LISTENER
+  useEffect(() => {
+    loadUser();
+
+    // Listener saat login/logout
+    window.addEventListener("authChanged", loadUser);
+
+    return () => {
+      window.removeEventListener("authChanged", loadUser);
+    };
   }, []);
 
   const handleSearch = (e) => {
@@ -25,7 +35,10 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user_session");
-    setUser(null);
+
+    // 🔥 TRIGGER UPDATE NAVBAR
+    window.dispatchEvent(new Event("authChanged"));
+
     router.push("/login");
   };
 
@@ -34,11 +47,11 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         
         {/* Logo */}
-        <Link href="/" className="text-2xl font-bold text-blue-600 cursor-pointer">
+        <Link href="/" className="text-2xl font-bold text-blue-600">
           MyStore
         </Link>
 
-        {/* Search - Tetap Muncul untuk Semua */}
+        {/* Search */}
         <form onSubmit={handleSearch} className="flex w-1/2">
           <input
             type="text"
@@ -47,51 +60,41 @@ export default function Navbar() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button type="submit" className="bg-blue-500 text-white px-6 rounded-r hover:bg-blue-600 transition">
+          <button className="bg-blue-500 text-white px-6 rounded-r hover:bg-blue-600">
             Search
           </button>
         </form>
 
-        {/* Right Menu - DINAMIS TERGANTUNG USER */}
+        {/* MENU DINAMIS */}
         <div className="flex items-center gap-6 text-sm text-gray-700">
-          
-          {/* 1. JIKA BELUM LOGIN (Halaman Awal) */}
+
+          {/* BELUM LOGIN */}
           {!user && (
             <>
-              <Link href="/register" className="hover:text-blue-600 transition font-medium">
-                Daftar
-              </Link>
-              <Link href="/login" className="font-semibold bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+              <Link href="/register">Daftar</Link>
+              <Link href="/login" className="bg-blue-600 text-white px-4 py-2 rounded-lg">
                 Login
               </Link>
             </>
           )}
 
-          {/* 2. JIKA LOGIN SEBAGAI CUSTOMER */}
-          {user && user.role === "customer" && (
+          {/* CUSTOMER */}
+          {user?.role === "customer" && (
             <>
-              <Link href="/cart" className="cursor-pointer hover:text-blue-600 transition flex items-center gap-1">
-                🛒 MyCart
-              </Link>
-              <Link href="/user/orders" className="hover:text-blue-600 transition font-medium">
-                Pesanan
-              </Link>
-              <button onClick={handleLogout} className="text-red-500 font-bold hover:underline">
+              <Link href="/cart">🛒 MyCart</Link>
+              <Link href="/user/orders">Pesanan</Link>
+              <button onClick={handleLogout} className="text-red-500">
                 Logout
               </button>
             </>
           )}
 
-          {/* 3. JIKA LOGIN SEBAGAI ADMIN */}
-          {user && user.role === "admin" && (
+          {/* ADMIN */}
+          {user?.role === "admin" && (
             <>
-              <Link href="/admin/orders" className="hover:text-blue-600 transition font-medium">
-                Pesanan (Status)
-              </Link>
-              <Link href="/admin/reports" className="hover:text-blue-600 transition font-medium">
-                Laporan
-              </Link>
-              <button onClick={handleLogout} className="text-red-500 font-bold hover:underline">
+              <Link href="/admin/orders">Pesanan</Link>
+              <Link href="/admin/reports">Laporan</Link>
+              <button onClick={handleLogout} className="text-red-500">
                 Logout
               </button>
             </>
