@@ -2,24 +2,24 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { useAuth } from '@/components/providers/AuthProvider'; // ✅ TAMBAHAN
 
 export default function ProductDetailPage() {
   const params = useParams();
   const slug = params?.slug; 
   
+  const { openLogin } = useAuth(); // ✅ TAMBAHAN
+  
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(null);
 
-  // ✅ tetap pakai state ini (tidak dihapus)
   const [isLoggedIn, setIsLoggedIn] = useState(false); 
-
-  // 🔥 POPUP
   const [showPopup, setShowPopup] = useState(false);
 
   const STORAGE_URL = "https://ecommerce-backend-production-aa2e.up.railway.app/storage/products/";
 
-  // 🔥 FIX LOGIN (pakai token, bukan user_session)
+  // 🔥 LOGIN CHECK (TETAP)
   useEffect(() => { 
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
@@ -67,17 +67,17 @@ export default function ProductDetailPage() {
   const hasDiscount = discountPercent > 0;
   const finalPrice = hasDiscount ? price - (price * discountPercent / 100) : price;
 
-  // 🔥 FIX UTAMA DI SINI
+  // 🔥 FIX FINAL (PAKAI AUTH)
   const handleOrder = () => {
     const token = localStorage.getItem("token");
 
     // ❌ BELUM LOGIN
     if (!token) {
-      window.dispatchEvent(new Event("openLogin"));
+      openLogin(); // ✅ GANTI DARI window.dispatchEvent
       return;
     }
 
-    // ✅ SUDAH LOGIN → logic lama tetap
+    // ✅ SUDAH LOGIN → logic tetap
     const userSession = JSON.parse(localStorage.getItem("user_session"));
     const key = `cart_${userSession.id}`;
 
