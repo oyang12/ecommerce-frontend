@@ -208,6 +208,7 @@ export default function ProductDetailPage() {
                   className="w-full bg-[#0a0f1e] text-white py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-blue-700 transition-all shadow-xl active:scale-95 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   Tambah ke Cart
+                    {isLoggedIn ? "Tambah ke Cart" : "Login untuk Beli"}
                 </button>
               </div>
             </div>
