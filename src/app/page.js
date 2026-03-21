@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import Filter from "@/components/Filter";
 import { fetchProducts } from '../services/api';
-import useAuth from "@/hooks/useAuth";
+
 
 export default function HomePage() {
-  useAuth(); // 🔥 TAMBAHAN DI SINI (tidak membatasi role)
+
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
