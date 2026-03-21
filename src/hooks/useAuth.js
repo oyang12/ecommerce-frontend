@@ -2,7 +2,10 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+
 export default function useAuth(roleRequired = null) {
+  const auth = useAuth();
+  const user = auth?.user;
   const router = useRouter();
 
   useEffect(() => {
