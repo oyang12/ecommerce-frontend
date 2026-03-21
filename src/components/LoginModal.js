@@ -73,8 +73,12 @@ export default function LoginModal({ isOpen, onClose }) {
           ✕
         </button>
 
-        {/* FORM (INI ASLI PUNYA KAMU, GAK DIUBAH) */}
-        <form onSubmit={handleLogin} className="p-10 bg-white shadow-2xl rounded-[2.5rem] w-full border border-gray-100">
+        {/* FORM */}
+        <form 
+          onSubmit={handleLogin} 
+          autoComplete="off"
+          className="p-10 bg-white shadow-2xl rounded-[2.5rem] w-full border border-gray-100"
+        >
           
           {/* HEADER */}
           <div className="text-center mb-10">
@@ -100,6 +104,8 @@ export default function LoginModal({ isOpen, onClose }) {
             </label>
             <input
               type="email"
+              name="login_email"
+              autoComplete="off"
               placeholder="contoh@mystore.com"
               className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all font-medium text-black"
               value={email}
@@ -115,6 +121,8 @@ export default function LoginModal({ isOpen, onClose }) {
             </label>
             <input
               type="password"
+              name="login_password"
+              autoComplete="new-password"
               placeholder="••••••••"
               className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all font-medium text-black"
               value={password}
