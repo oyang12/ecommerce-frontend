@@ -19,12 +19,17 @@ export default function Navbar() {
 
   // 🔥 LOAD AWAL + LISTENER
   useEffect(() => {
-    loadUser();
+  loadUser();
 
-    window.addEventListener("authChanged", loadUser);
+  window.addEventListener("authChanged", loadUser);
 
+    // 🔥 LISTENER BUKA LOGIN POPUP
+    const openLoginHandler = () => setShowLogin(true);
+    window.addEventListener("openLogin", openLoginHandler);
+  
     return () => {
       window.removeEventListener("authChanged", loadUser);
+      window.removeEventListener("openLogin", openLoginHandler);
     };
   }, []);
 
