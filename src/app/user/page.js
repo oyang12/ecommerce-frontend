@@ -9,7 +9,7 @@ import useAuth from "@/hooks/useAuth";
 
 export default function HomePage() {
 
-  useAuth("admin");
+  useAuth("customer");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
