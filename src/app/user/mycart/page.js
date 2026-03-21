@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import useAuth from "@/hooks/useAuth";
+import { useAuth } from "@/components/providers/AuthProvider"; // ✅ BALIK KE SINI
 
 export default function MyCartPage() {
   const { user, openLogin } = useAuth();
@@ -12,18 +12,17 @@ export default function MyCartPage() {
   const [selected, setSelected] = useState([]);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  const PHONE = "6282153249401"; // 🔥 GANTI NOMOR KAMU
+  const PHONE = "6282153249401"; // ganti nomor kamu
 
-  // FORMAT
   const formatRupiah = (num) =>
     new Intl.NumberFormat("id-ID").format(num);
 
-  // 🔐 PROTECT + REDIRECT
+  // 🔐 PROTECT (PAKAI SISTEM LAMA)
   useEffect(() => {
     if (user === undefined) return;
 
     if (!user) {
-      openLogin({ redirect: "/mycart" }); // ⬅️ redirect balik sini
+      openLogin?.({ redirect: "/mycart" }); // ✅ aman (optional chaining)
     } else {
       setCheckingAuth(false);
     }
@@ -41,13 +40,11 @@ export default function MyCartPage() {
     }
   }, [user]);
 
-  // SAVE
   const saveCart = (updated) => {
     setCart(updated);
     localStorage.setItem(`cart_${user.id}`, JSON.stringify(updated));
   };
 
-  // SELECT
   const toggleSelect = (id) => {
     setSelected((prev) =>
       prev.includes(id)
@@ -64,7 +61,6 @@ export default function MyCartPage() {
     }
   };
 
-  // QTY
   const increaseQty = (id) => {
     const updated = cart.map((item) =>
       item.id === id ? { ...item, qty: item.qty + 1 } : item
@@ -82,20 +78,17 @@ export default function MyCartPage() {
     saveCart(updated);
   };
 
-  // REMOVE
   const removeItem = (id) => {
     const updated = cart.filter((item) => item.id !== id);
     saveCart(updated);
     setSelected((prev) => prev.filter((i) => i !== id));
   };
 
-  // CLEAR
   const clearCart = () => {
     saveCart([]);
     setSelected([]);
   };
 
-  // TOTAL
   const selectedItems = cart.filter((item) =>
     selected.includes(item.id)
   );
@@ -105,7 +98,7 @@ export default function MyCartPage() {
     0
   );
 
-  // 📲 CHECKOUT WHATSAPP
+  // 📲 WA CHECKOUT
   const handleCheckout = () => {
     if (selectedItems.length === 0) return;
 
@@ -124,11 +117,10 @@ export default function MyCartPage() {
     message += `\nTerima kasih 🙏`;
 
     const url = `https://wa.me/${PHONE}?text=${encodeURIComponent(message)}`;
-
     window.open(url, "_blank");
   };
 
-  // BLOCK
+  // ⛔ BLOCK
   if (checkingAuth) {
     return (
       <div className="h-[60vh] flex items-center justify-center">
