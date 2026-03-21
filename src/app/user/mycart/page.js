@@ -19,13 +19,14 @@ export default function MyCartPage() {
 
   // 🔐 PROTECT (PAKAI SISTEM LAMA)
   useEffect(() => {
-    if (user === undefined) return;
-
+    // kalau user belum ada (undefined), anggap belum login
     if (!user) {
-      openLogin?.({ redirect: "/mycart" }); // ✅ aman (optional chaining)
-    } else {
-      setCheckingAuth(false);
+      openLogin?.({ redirect: "/user/mycart" });
+      return;
     }
+  
+    // kalau sudah ada user
+    setCheckingAuth(false);
   }, [user, openLogin]);
 
   // LOAD CART
