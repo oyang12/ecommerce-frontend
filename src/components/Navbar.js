@@ -1,37 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/components/providers/AuthProvider"; // ✅ FIX DI SINI
+import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function Navbar() {
   const [search, setSearch] = useState("");
-  const [user, setUser] = useState(null);
   const router = useRouter();
-  const { openLogin } = useAuth(); // ✅ sekarang aman
 
-  const loadUser = () => {
-    const session = localStorage.getItem("user_session");
-    setUser(session ? JSON.parse(session) : null);
-  };
-
-  useEffect(() => {
-    loadUser();
-    window.addEventListener("authChanged", loadUser);
-    return () => window.removeEventListener("authChanged", loadUser);
-  }, []);
+  // ✅ SINGLE SOURCE OF TRUTH
+  const { user, openLogin, logout } = useAuth();
 
   const handleSearch = (e) => {
     e.preventDefault();
     console.log("Search:", search);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user_session");
-    window.dispatchEvent(new Event("authChanged"));
-    router.push("/");
   };
 
   return (
@@ -57,11 +40,12 @@ export default function Navbar() {
 
         <div className="flex items-center gap-6 text-sm text-gray-700">
 
+          {/* ❌ BELUM LOGIN */}
           {!user && (
             <>
               <Link href="/register">Daftar</Link>
               <button
-                onClick={openLogin}
+                onClick={() => openLogin()}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg"
               >
                 Login
@@ -69,21 +53,23 @@ export default function Navbar() {
             </>
           )}
 
+          {/* ✅ CUSTOMER */}
           {user?.role === "customer" && (
             <>
               <Link href="/user/mycart">🛒 MyCart</Link>
               <Link href="/user/orders">Pesanan</Link>
-              <button onClick={handleLogout} className="text-red-500">
+              <button onClick={logout} className="text-red-500">
                 Logout
               </button>
             </>
           )}
 
+          {/* ✅ ADMIN */}
           {user?.role === "admin" && (
             <>
               <Link href="/admin/orders">Pesanan</Link>
               <Link href="/admin/reports">Laporan</Link>
-              <button onClick={handleLogout} className="text-red-500">
+              <button onClick={logout} className="text-red-500">
                 Logout
               </button>
             </>
