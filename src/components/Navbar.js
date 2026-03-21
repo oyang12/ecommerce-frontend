@@ -82,7 +82,7 @@ export default function Navbar() {
           {/* CUSTOMER */}
           {user?.role === "customer" && (
             <>
-              <Link href="/cart">🛒 MyCart</Link>
+              <Link href="/user/mycart">🛒 MyCart</Link>
               <Link href="/user/orders">Pesanan</Link>
               <button onClick={handleLogout} className="text-red-500">
                 Logout
