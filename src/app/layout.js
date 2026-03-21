@@ -1,6 +1,10 @@
+"use client";
+
 import { Geist, Geist_Mono } from "next/font/google";
+import { useState, useEffect } from "react";
 import "./globals.css";
 import Navbar from "../components/Navbar";
+import LoginModal from "@/components/LoginModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,13 +22,30 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const [showLogin, setShowLogin] = useState(false);
+
+  useEffect(() => {
+    const openLoginHandler = () => setShowLogin(true);
+    window.addEventListener("openLogin", openLoginHandler);
+
+    return () => {
+      window.removeEventListener("openLogin", openLoginHandler);
+    };
+  }, []);
+
   return (
     <html lang="en">
-      <body>
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
 
         <Navbar />
 
         {children}
+
+        {/* 🔥 LOGIN POPUP GLOBAL */}
+        <LoginModal
+          isOpen={showLogin}
+          onClose={() => setShowLogin(false)}
+        />
 
       </body>
     </html>
