@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import useAuth from "@/hooks/useAuth";
 
 export default function AdminProducts() {
+  useAuth("admin");
+
   const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
