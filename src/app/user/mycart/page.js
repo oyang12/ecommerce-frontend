@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import useAuth from "@/hooks/useAuth";
 
 export default function MyCartPage() {
+  const auth = useAuth();
+  const user = auth?.user;
   const { user } = useAuth();
   const [cart, setCart] = useState([]);
 
