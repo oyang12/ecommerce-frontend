@@ -29,10 +29,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
 
       if (res.ok) {
         localStorage.setItem("token", data.token);
-
-        // 🔥 kirim ke AuthProvider
         onSuccess(data.user);
-
         return;
       }
 
@@ -51,54 +48,116 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="relative w-full max-w-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
 
-        <button
-          onClick={onClose}
-          className="absolute -top-2 -right-2 bg-white w-8 h-8 rounded-full shadow"
-        >
-          ✕
-        </button>
+      {/* BACKDROP */}
+      <div
+        onClick={onClose}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      />
 
-        <form
-          onSubmit={handleLogin}
-          className="p-10 bg-white rounded-3xl"
-        >
-          <h2 className="text-2xl font-bold mb-6 text-center">
-            Login
-          </h2>
+      {/* MODAL */}
+      <div className="relative w-full max-w-md mx-4 animate-[fadeIn_.3s_ease]">
 
+        {/* CARD */}
+        <div className="relative bg-white/90 backdrop-blur-xl border border-white/20 shadow-2xl rounded-[2.5rem] p-10">
+
+          {/* CLOSE */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white shadow hover:scale-110 transition"
+          >
+            ✕
+          </button>
+
+          {/* HEADER */}
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-black tracking-tight text-gray-900">
+              Welcome Back
+            </h2>
+            <p className="text-gray-400 text-xs font-semibold tracking-widest uppercase mt-2">
+              Login ke akun kamu
+            </p>
+          </div>
+
+          {/* ERROR */}
           {error && (
-            <div className="text-red-500 text-sm mb-4">
-              {error}
+            <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-xs font-bold">
+              ⚠️ {error}
             </div>
           )}
 
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full p-3 border rounded mb-3"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          {/* FORM */}
+          <form onSubmit={handleLogin} className="space-y-5">
 
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full p-3 border rounded mb-6"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+            {/* EMAIL */}
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">
+                Email
+              </label>
+              <input
+                type="email"
+                placeholder="you@email.com"
+                className="w-full mt-2 p-4 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-black font-medium"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-          <button
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded"
-          >
-            {loading ? "Loading..." : "Login"}
-          </button>
-        </form>
+            {/* PASSWORD */}
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 ml-1">
+                Password
+              </label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                className="w-full mt-2 p-4 rounded-2xl bg-gray-50 border border-gray-100 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-black font-medium"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* BUTTON */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-4 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black uppercase tracking-widest text-xs shadow-xl hover:scale-[1.02] active:scale-95 transition disabled:opacity-50"
+            >
+              {loading ? "Loading..." : "Sign In"}
+            </button>
+
+          </form>
+
+          {/* FOOTER */}
+          <div className="text-center mt-8">
+            <p className="text-[11px] text-gray-400">
+              Belum punya akun?{" "}
+              <span className="text-blue-600 font-bold cursor-pointer hover:underline">
+                Daftar
+              </span>
+            </p>
+          </div>
+
+        </div>
       </div>
+
+      {/* ANIMATION STYLE */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
+
     </div>
   );
 }
